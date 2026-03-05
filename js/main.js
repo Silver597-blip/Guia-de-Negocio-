@@ -1,14 +1,29 @@
-// ==========================================
-// CONFIGURAÇÃO
-// ==========================================
+/* =========================================================
+   GUIA DE NEGÓCIOS - main.js (ORGANIZADO)
+   - API (Render) + fallback localStorage
+   ========================================================= */
+
+/* =========================
+   1) CONFIG
+   ========================= */
 const CONFIG = {
-  whatsapp: "258842043370",
-  empresasKey: "Guia de Negocio",
+  whatsappPadrao: "258842043370",
+
+  // ✅ Coloque aqui a URL do seu backend Render
+  // Exemplo: "https://guia-chimoio-api.onrender.com/api"
+  API_BASE: "https://SEU-SERVIDOR.onrender.com/api",
+
+  // Fallback local
+  STORAGE_KEY_EMPRESAS: "Guia de Negocio",
+  STORAGE_KEY_THEME: "theme",
+
+  // UI
+  LIMITE_HOME: 10,
 };
 
-// ==========================================
-// DADOS PADRÃO (empresas de exemplo)
-// ==========================================
+/* =========================
+   2) DADOS PADRÃO (fallback)
+   ========================= */
 const EMPRESAS_PADRAO = [
   {
     id: 1,
@@ -54,32 +69,9 @@ const EMPRESAS_PADRAO = [
   },
 ];
 
-// ==========================================
-// CARREGAR EMPRESAS
-// ==========================================
-function carregarEmpresas() {
-  try {
-    // Tentar carregar do localStorage
-    const salvas = localStorage.getItem(CONFIG.empresasKey);
-
-    if (salvas) {
-      const empresas = JSON.parse(salvas);
-      // Filtrar apenas ativas
-      return empresas.filter((e) => e.ativo !== false);
-    }
-
-    // Se não houver no localStorage, salvar padrão e retornar
-    localStorage.setItem(CONFIG.empresasKey, JSON.stringify(EMPRESAS_PADRAO));
-    return EMPRESAS_PADRAO;
-  } catch (error) {
-    console.error("Erro ao carregar empresas:", error);
-    return EMPRESAS_PADRAO;
-  }
-}
-
-// ==========================================
-// CATEGORIAS
-// ==========================================
+/* =========================
+   3) CATEGORIAS
+   ========================= */
 const CATEGORIAS = [
   "Restaurantes",
   "Farmácias",
@@ -102,9 +94,9 @@ const CATEGORIAS = [
   "Imobiliárias",
 ];
 
-// ==========================================
-// UTILITÁRIOS
-// ==========================================
+/* =========================
+   4) UTILITÁRIOS
+   ========================= */
 const $ = (id) => document.getElementById(id);
 
 function waLink(numero, texto) {
@@ -119,186 +111,229 @@ function copyText(text) {
     .catch(() => prompt("Copie manualmente:", text));
 }
 
-function formatarData(dataString) {
-  if (!dataString) return "-";
-  const data = new Date(dataString);
-  return data.toLocaleDateString("pt-BR");
+function normalizeWhatsApp(value) {
+  return String(value || "").replace(/\D/g, "");
 }
 
-// ==========================================
-// RENDERIZAR LISTA DE EMPRESAS
-// ==========================================
-function renderLista(targetId, items, limite = null) {
-  const el = $(targetId);
-  if (!el) return;
+/* =========================
+   5) STORAGE (fallback)
+   ========================= */
+const Storage = {
+  getEmpresas() {
+    try {
+      const raw = localStorage.getItem(CONFIG.STORAGE_KEY_EMPRESAS);
+      if (!raw) return null;
+      const empresas = JSON.parse(raw);
+      return Array.isArray(empresas) ? empresas : null;
+    } catch {
+      return null;
+    }
+  },
 
-  // Filtrar apenas ativas e ordenar (destaque primeiro)
-  let empresas = items
-    .filter((e) => e.ativo !== false)
-    .sort((a, b) => (b.destaque === true) - (a.destaque === true));
+  setEmpresas(empresas) {
+    try {
+      localStorage.setItem(
+        CONFIG.STORAGE_KEY_EMPRESAS,
+        JSON.stringify(empresas),
+      );
+    } catch {}
+  },
+};
 
-  // Aplicar limite se especificado
-  if (limite) {
-    empresas = empresas.slice(0, limite);
-  }
+/* =========================
+   6) API (Render)
+   ========================= */
+const Api = {
+  async listarEmpresas() {
+    const url = `${CONFIG.API_BASE}/empresas`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("Falha ao buscar empresas");
+    const data = await r.json();
+    return Array.isArray(data.empresas) ? data.empresas : [];
+  },
+};
 
-  if (empresas.length === 0) {
-    el.innerHTML = `
-      <div class="card" style="text-align: center; padding: 40px;">
-        <p style="color: var(--muted);">Nenhuma empresa encontrada.</p>
-      </div>
-    `;
-    return;
-  }
+/* =========================
+   7) REPOSITÓRIO (fonte de dados)
+   - tenta API
+   - se falhar, usa localStorage
+   - se não tiver, usa padrão
+   ========================= */
+const EmpresasRepo = {
+  async carregar() {
+    // 1) tenta API
+    try {
+      const empresas = await Api.listarEmpresas();
+      // opcional: cache local
+      Storage.setEmpresas(empresas);
+      return empresas.filter((e) => e.ativo !== false);
+    } catch (e) {
+      console.warn("⚠️ API indisponível, usando fallback:", e.message);
+    }
 
-  el.innerHTML = empresas
-    .map((e, i) => {
-      const badge = e.destaque
-        ? `<span class="tag hot">⭐ Destaque</span>`
-        : `<span class="tag">${e.categoria}</span>`;
+    // 2) tenta localStorage
+    const local = Storage.getEmpresas();
+    if (local && local.length) {
+      return local.filter((e) => e.ativo !== false);
+    }
 
-      const wa = e.whatsapp || CONFIG.whatsapp;
-      const texto = `Olá! Vi a empresa "${e.nome}" no Guia de Negócios de Chimoio. Quero mais informações.`;
+    // 3) fallback padrão
+    Storage.setEmpresas(EMPRESAS_PADRAO);
+    return EMPRESAS_PADRAO;
+  },
+};
 
-      return `
-      <article class="item" style="animation-delay: ${i * 0.05}s">
-        <div class="top">
-          <div>
-            <div style="font-weight:800;font-size:16px">${e.nome}</div>
-            <div class="meta">${e.categoria} • ${e.bairro}</div>
-          </div>
-          ${badge}
+/* =========================
+   8) RENDER (UI)
+   ========================= */
+const UI = {
+  renderCategoriasOptions(selectId, includeTodas = true) {
+    const sel = $(selectId);
+    if (!sel) return;
+
+    let html = includeTodas ? `<option value="">Todas as categorias</option>` : "";
+    html += CATEGORIAS.map((c) => `<option value="${c}">${c}</option>`).join("");
+    sel.innerHTML = html;
+  },
+
+  renderLista(targetId, items, limite = null) {
+    const el = $(targetId);
+    if (!el) return;
+
+    let empresas = (items || [])
+      .filter((e) => e.ativo !== false)
+      .sort((a, b) => (b.destaque === true) - (a.destaque === true));
+
+    if (limite) empresas = empresas.slice(0, limite);
+
+    if (!empresas.length) {
+      el.innerHTML = `
+        <div class="card" style="text-align:center; padding:40px;">
+          <p style="color: var(--muted);">Nenhuma empresa encontrada.</p>
         </div>
-        <div class="meta">📞 ${e.contacto} • ⏰ ${e.horario}</div>
-        ${e.descricao ? `<div class="meta" style="margin-top: 8px;">${e.descricao.substring(0, 100)}${e.descricao.length > 100 ? "..." : ""}</div>` : ""}
-        <div class="actions">
-          <a class="btn green" target="_blank" href="${waLink(wa, texto)}">💬 WhatsApp</a>
-          <button class="btn" onclick="copyText('${e.contacto}')">📋 Copiar</button>
-          <a class="btn" href="empresa.html?id=${e.id}">ℹ️ Ver mais</a>
-        </div>
-      </article>
-    `;
-    })
-    .join("");
-}
+      `;
+      return;
+    }
 
-// ==========================================
-// RENDERIZAR OPÇÕES DE CATEGORIA
-// ==========================================
-function renderCategoriasOptions(selectId, todas = true) {
-  const sel = $(selectId);
-  if (!sel) return;
+    el.innerHTML = empresas
+      .map((e, i) => {
+        const badge = e.destaque
+          ? `<span class="tag hot">⭐ Destaque</span>`
+          : `<span class="tag">${e.categoria}</span>`;
 
-  let html = todas ? `<option value="">Todas as categorias</option>` : "";
-  html += CATEGORIAS.map((c) => `<option value="${c}">${c}</option>`).join("");
-  sel.innerHTML = html;
-}
+        const wa = normalizeWhatsApp(e.whatsapp) || CONFIG.whatsappPadrao;
+        const texto = `Olá! Vi a empresa "${e.nome}" no Guia de Negócios de Chimoio. Quero mais informações.`;
 
-// ==========================================
-// FILTRAR EMPRESAS
-// ==========================================
-function filtrar(lista, q, cat) {
-  q = (q || "").toLowerCase().trim();
-  return lista
-    .filter((e) => {
-      const okCat = !cat || e.categoria === cat;
-      const okQ =
-        !q ||
-        e.nome.toLowerCase().includes(q) ||
-        e.bairro.toLowerCase().includes(q) ||
-        e.categoria.toLowerCase().includes(q);
-      return okCat && okQ && e.ativo !== false;
-    })
-    .sort((a, b) => (b.destaque === true) - (a.destaque === true));
-}
+        return `
+          <article class="item" style="animation-delay:${i * 0.05}s">
+            <div class="top">
+              <div>
+                <div style="font-weight:800;font-size:16px">${e.nome}</div>
+                <div class="meta">${e.categoria} • ${e.bairro}</div>
+              </div>
+              ${badge}
+            </div>
+            <div class="meta">📞 ${e.contacto || "-"} • ⏰ ${e.horario || "-"}</div>
+            ${
+              e.descricao
+                ? `<div class="meta" style="margin-top:8px;">
+                    ${String(e.descricao).substring(0, 100)}${String(e.descricao).length > 100 ? "..." : ""}
+                   </div>`
+                : ""
+            }
+            <div class="actions">
+              <a class="btn green" target="_blank" href="${waLink(wa, texto)}">💬 WhatsApp</a>
+              <button class="btn" type="button" onclick="copyText('${(e.contacto || "").replace(/'/g, "\\'")}')">📋 Copiar</button>
+              <a class="btn" href="empresa.html?id=${e.id}">ℹ️ Ver mais</a>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+  },
 
-// ==========================================
-// ATUALIZAR KPIs
-// ==========================================
-function atualizarKPI() {
-  const empresas = carregarEmpresas();
-  const total = empresas.length;
-  const destaque = empresas.filter((e) => e.destaque).length;
-  const cats = new Set(empresas.map((e) => e.categoria)).size;
-  const bairros = new Set(empresas.map((e) => e.bairro)).size;
+  filtrar(lista, q, cat) {
+    const termo = (q || "").toLowerCase().trim();
+    return (lista || [])
+      .filter((e) => {
+        const okCat = !cat || e.categoria === cat;
+        const okQ =
+          !termo ||
+          String(e.nome || "").toLowerCase().includes(termo) ||
+          String(e.bairro || "").toLowerCase().includes(termo) ||
+          String(e.categoria || "").toLowerCase().includes(termo);
+        return okCat && okQ && e.ativo !== false;
+      })
+      .sort((a, b) => (b.destaque === true) - (a.destaque === true));
+  },
 
-  if ($("kpiTotal")) $("kpiTotal").textContent = total;
-  if ($("kpiDestaque")) $("kpiDestaque").textContent = destaque;
-  if ($("kpiCats")) $("kpiCats").textContent = cats;
-  if ($("kpiBairros")) $("kpiBairros").textContent = bairros;
-}
+  atualizarKPI(empresas) {
+    const list = empresas || [];
+    const total = list.length;
+    const destaque = list.filter((e) => e.destaque).length;
+    const cats = new Set(list.map((e) => e.categoria)).size;
+    const bairros = new Set(list.map((e) => e.bairro)).size;
 
-// ==========================================
-// INICIALIZAR HOME
-// ==========================================
-function initHome() {
-  const empresas = carregarEmpresas();
+    if ($("kpiTotal")) $("kpiTotal").textContent = total;
+    if ($("kpiDestaque")) $("kpiDestaque").textContent = destaque;
+    // compatibilidade com IDs diferentes (algumas páginas usam kpiCats ou kpiVip etc)
+    if ($("kpiCats")) $("kpiCats").textContent = cats;
+    if ($("kpiBairros")) $("kpiBairros").textContent = bairros;
+  },
+};
 
-  renderCategoriasOptions("catHome");
-  atualizarKPI();
+/* =========================
+   9) PÁGINAS
+   ========================= */
+async function initHome() {
+  const empresas = await EmpresasRepo.carregar();
+
+  UI.renderCategoriasOptions("catHome", true);
+  UI.atualizarKPI(empresas);
 
   const qEl = $("qHome");
   const cEl = $("catHome");
 
   const run = () => {
-    const items = filtrar(empresas, qEl?.value, cEl?.value);
-    renderLista("listaHome", items, 10); // Mostrar apenas 10 na home
+    const items = UI.filtrar(empresas, qEl?.value, cEl?.value);
+    UI.renderLista("listaHome", items, CONFIG.LIMITE_HOME);
   };
 
   qEl?.addEventListener("input", run);
   cEl?.addEventListener("change", run);
 
-  // Atualizar quando houver mudanças no storage
-  window.addEventListener("storage", (e) => {
-    if (e.key === CONFIG.empresasKey) {
-      console.log("🔄 Empresas atualizadas, recarregando...");
-      location.reload();
-    }
-  });
-
   run();
 }
 
-// ==========================================
-// INICIALIZAR CATEGORIAS
-// ==========================================
-function initCategorias() {
-  const empresas = carregarEmpresas();
+async function initCategorias() {
+  const empresas = await EmpresasRepo.carregar();
 
-  renderCategoriasOptions("catAll");
+  UI.renderCategoriasOptions("catAll", true);
 
   const qEl = $("qAll");
   const cEl = $("catAll");
 
   const run = () => {
-    const items = filtrar(empresas, qEl?.value, cEl?.value);
-    renderLista("listaAll", items);
+    const items = UI.filtrar(empresas, qEl?.value, cEl?.value);
+    UI.renderLista("listaAll", items);
   };
 
   qEl?.addEventListener("input", run);
   cEl?.addEventListener("change", run);
 
-  // Atualizar quando houver mudanças
-  window.addEventListener("storage", (e) => {
-    if (e.key === CONFIG.empresasKey) {
-      location.reload();
-    }
-  });
-
   run();
 }
 
-// ==========================================
-// TEMA
-// ==========================================
+/* =========================
+   10) TEMA
+   ========================= */
 function initTheme() {
-  const themeToggle = document.getElementById("themeToggle");
-  const themeIcon = document.getElementById("themeIcon");
+  const themeToggle = $("themeToggle");
+  const themeIcon = $("themeIcon");
   const root = document.documentElement;
-
   if (!themeToggle) return;
 
-  const savedTheme = localStorage.getItem("theme") || "dark";
+  const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEY_THEME) || "dark";
   root.setAttribute("data-theme", savedTheme);
   if (themeIcon) themeIcon.textContent = savedTheme === "dark" ? "☀️" : "🌙";
 
@@ -306,32 +341,35 @@ function initTheme() {
     const current = root.getAttribute("data-theme");
     const next = current === "dark" ? "light" : "dark";
     root.setAttribute("data-theme", next);
-    localStorage.setItem("theme", next);
+    localStorage.setItem(CONFIG.STORAGE_KEY_THEME, next);
     if (themeIcon) themeIcon.textContent = next === "dark" ? "☀️" : "🌙";
   });
 }
 
-// ==========================================
-// INICIALIZAÇÃO GERAL
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
+/* =========================
+   11) BOOT
+   ========================= */
+document.addEventListener("DOMContentLoaded", async () => {
   initTheme();
 
-  const path = window.location.pathname;
-
-  if (path.includes("index") || path === "/" || path.endsWith("/")) {
-    initHome();
-  } else if (path.includes("categorias")) {
-    initCategorias();
-  }
-
-  // Atualizar ano no footer
-  const anoEl = document.getElementById("ano");
+  // footer
+  const anoEl = $("ano");
   if (anoEl) anoEl.textContent = new Date().getFullYear();
+
+  const path = window.location.pathname.toLowerCase();
+
+  // Heurística simples
+  if (path.includes("categorias")) {
+    await initCategorias();
+  } else {
+    // index / home
+    await initHome();
+  }
 });
 
-// Exportar para uso global
+// Export global (se precisar em outras páginas)
 window.GuiaChimoio = {
-  carregarEmpresas,
+  EmpresasRepo,
+  UI,
   CONFIG,
 };
