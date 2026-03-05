@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login • Painel Administrativo</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+  </head>
+  <body class="login-body">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="logo">🔐</div>
+          <h1>Painel Administrativo</h1>
+          <p>Guia de Negócios de Chimoio</p>
+        </div>
+
+        <form class="login-form" id="loginForm">
+          <div class="form-group">
+            <label for="username">Usuário</label>
+            <input
+              type="text"
+              id="username"
+              placeholder="Digite seu usuário"
+              required
+              value="admin"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Senha</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Digite sua senha"
+              required
+              value="admin123"
+            />
+          </div>
+
+          <div class="login-options">
+            <label>
+              <input type="checkbox" checked />
+              Lembrar-me
+            </label>
+            <a href="#">Esqueceu a senha?</a>
+          </div>
+
+          <button type="submit" class="btn-login" id="btnLogin">
+            Entrar no Sistema →
+          </button>
+        </form>
+
+        <!-- Mensagem de erro -->
+        <div
+          id="erroLogin"
+          style="
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+          "
+        >
+          ❌ Usuário ou senha incorretos
+        </div>
+
+        <div
+          style="
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--line);
+          "
+        >
+          <a
+            href="../index.html"
+            style="color: var(--muted); font-size: 14px; text-decoration: none"
+          >
+            ← Voltar ao site
+          </a>
+        </div>
+      </div>
+
+      <p
+        style="
+          text-align: center;
+          margin-top: 20px;
+          color: var(--muted);
+          font-size: 13px;
+        "
+      >
+        © 2024 Guia de Negócios de Chimoio. Todos os direitos reservados.
+      </p>
+    </div>
+
+    <!-- JavaScript INLINE - Funciona imediatamente -->
+    <script>
+      // ==========================================
+      // SISTEMA DE LOGIN FUNCIONAL
+      // ==========================================
+
+      // Credenciais padrão
+      const CREDENCIAIS = {
+        username: "admin",
+        password: "admin123",
+        nome: "Administrador",
+        role: "superadmin",
+      };
+
+      // Verificar se já está logado
+      function verificarSessao() {
+        const user = sessionStorage.getItem("adminUser");
+        if (user) {
+          // Já está logado, redirecionar para dashboard
+          console.log("✅ Usuário já logado, redirecionando...");
+          window.location.href = "dashboard.html";
+          return true;
+        }
+        return false;
+      }
+
+      // Função de login
+      function fazerLogin(event) {
+        event.preventDefault();
+
+        const btn = document.getElementById("btnLogin");
+        const erroDiv = document.getElementById("erroLogin");
+
+        // Feedback visual
+        btn.textContent = "⏳ Entrando...";
+        btn.disabled = true;
+        erroDiv.style.display = "none";
+
+        // Pegar valores
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        console.log("Tentando login:", username);
+
+        // Validar
+        setTimeout(() => {
+          if (
+            username === CREDENCIAIS.username &&
+            password === CREDENCIAIS.password
+          ) {
+            // Sucesso!
+            console.log("✅ Login bem-sucedido!");
+
+            // Salvar sessão
+            const userData = {
+              username: CREDENCIAIS.username,
+              nome: CREDENCIAIS.nome,
+              role: CREDENCIAIS.role,
+              loginTime: new Date().toISOString(),
+            };
+
+            sessionStorage.setItem("adminUser", JSON.stringify(userData));
+
+            // Redirecionar
+            btn.textContent = "✅ Sucesso! Redirecionando...";
+            window.location.href = "dashboard.html";
+          } else {
+            // Erro
+            console.log("❌ Credenciais inválidas");
+            btn.textContent = "Entrar no Sistema →";
+            btn.disabled = false;
+            erroDiv.style.display = "block";
+
+            // Limpar senha
+            document.getElementById("password").value = "";
+            document.getElementById("password").focus();
+          }
+        }, 500); // Pequeno delay para feedback visual
+      }
+
+      // Inicializar
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("🔐 Página de login carregada");
+
+        // Verificar se já está logado
+        if (verificarSessao()) {
+          return; // Já redirecionou
+        }
+
+        // Configurar formulário
+        const form = document.getElementById("loginForm");
+        if (form) {
+          form.addEventListener("submit", fazerLogin);
+          console.log("✅ Formulário configurado");
+        } else {
+          console.error("❌ Formulário não encontrado!");
+        }
+      });
+    </script>
+  </body>
+</html>
