@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Guia de Negócios - Encontre empresas e serviços em so lugar"
+    />
+    <meta
+      name="keywords"
+      content="guia de negócios, empresas, serviços, Moçambique"
+    />
+
+    <title>Guia de Negócios de Chimoio</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+
+    <style>
+      /* ============================================
+           DESIGN SYSTEM
+           ============================================ */
+      :root {
+        --color-basic: #90abe0;
+        --color-pro: #3b82f6;
+        --color-vip: #ef4444;
+        --color-destaque: #f59e0b;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      /* ============================================
+           COMPONENTE: CARD DE EMPRESA
+           ============================================ */
+      .empresa-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .empresa-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Modificadores por Plano */
+      .empresa-card--basico {
+        border-left: 4px solid var(--color-basic);
+      }
+
+      .empresa-card--pro {
+        border-left: 4px solid var(--color-pro);
+        background: linear-gradient(
+          135deg,
+          var(--card) 0%,
+          rgba(59, 130, 246, 0.05) 100%
+        );
+      }
+
+      .empresa-card--vip {
+        border-left: 4px solid var(--color-vip);
+        background: linear-gradient(
+          135deg,
+          var(--card) 0%,
+          rgba(239, 68, 68, 0.08) 100%
+        );
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+      }
+
+      .empresa-card--destaque {
+        border: 2px solid var(--color-destaque);
+        background: linear-gradient(
+          135deg,
+          var(--card) 0%,
+          rgba(245, 158, 11, 0.1) 100%
+        );
+      }
+
+      /* Elementos do Card */
+      .empresa-card__badge-plano {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .empresa-card__badge-plano--basico {
+        background: rgba(107, 114, 128, 0.1);
+        color: var(--color-basic);
+      }
+      .empresa-card__badge-plano--pro {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--color-pro);
+      }
+      .empresa-card__badge-plano--vip {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--color-vip);
+        animation: pulse 2s infinite;
+      }
+
+      .empresa-card__badge-destaque {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: var(--color-destaque);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .empresa-card__titulo {
+        font-weight: 800;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .empresa-card__verificado {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #10b981;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .empresa-card__meta {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      /* ============================================
+           SISTEMA DE IMAGENS (CORREÇÃO BASE64)
+           ============================================ */
+      .empresa-card__banner {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 16px;
+      }
+
+      .empresa-card__fotos {
+        display: flex;
+        gap: 8px;
+        margin: 12px 0;
+        overflow-x: auto;
+      }
+
+      .empresa-card__foto {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid var(--line);
+        flex-shrink: 0;
+        background: var(--bg);
+      }
+
+      .empresa-card__foto--erro {
+        display: none;
+      }
+
+      .empresa-card__foto-mais {
+        width: 80px;
+        height: 80px;
+        background: var(--bg);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+
+      /* ============================================
+           REDES SOCIAIS E STATS
+           ============================================ */
+      .empresa-card__redes {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .empresa-card__rede {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        text-decoration: none;
+        transition: transform 0.2s;
+      }
+
+      .empresa-card__rede:hover {
+        transform: scale(1.1);
+      }
+
+      .empresa-card__stats {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .empresa-card__acoes {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+
+      .empresa-card__upgrade {
+        background: linear-gradient(135deg, var(--color-destaque), #d97706);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin-top: 16px;
+        border: none;
+        width: 100%;
+      }
+
+      .empresa-card__upgrade:hover {
+        transform: translateY(-2px);
+      }
+
+      /* ============================================
+           FILTROS E SEÇÕES
+           ============================================ */
+      .filtros {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+
+      .filtro {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      .filtro:hover,
+      .filtro--ativo {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+
+      .secao-planos {
+        margin-top: 48px;
+        padding: 32px;
+        background: var(--card);
+        border-radius: 20px;
+        border: 1px solid var(--line);
+      }
+
+      .planos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .plano-item {
+        text-align: center;
+        padding: 24px;
+        border: 2px solid var(--line);
+        border-radius: 16px;
+      }
+
+      .plano-item--pro {
+        border-color: var(--color-pro);
+        position: relative;
+      }
+      .plano-item--vip {
+        border-color: var(--color-vip);
+      }
+
+      .plano-item__badge {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--color-pro);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+      .mt-24 {
+        margin-top: 24px;
+      }
+
+      @media (max-width: 768px) {
+        .empresa-card__titulo {
+          font-size: 16px;
+        }
+        .filtros {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navegação -->
+    <nav class="nav">
+      <div class="wrap">
+        <div class="brand">
+          <span> Guia de Negócios</span>
+          <span class="badge">Um Só Lugar</span>
+        </div>
+        <div class="menu">
+          <a class="active" href="index.html">Home</a>
+          <a href="categorias.html">Categorias</a>
+          <a href="anunciar.html">Anunciar</a>
+          <a href="contato.html">Contato</a>
+          <button
+            id="themeToggle"
+            class="btn"
+            type="button"
+            title="Alternar tema"
+          >
+            <span id="themeIcon">🌙</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="container">
+      <!-- Hero -->
+      <section class="hero">
+        <h1 class="h1">Encontre empresas e serviços em um lugar</h1>
+        <p class="p">
+          Pesquise por nome, categoria ou bairro. Empresas em
+          <strong>Destaque</strong> aparecem primeiro.
+        </p>
+
+        <div class="searchbar">
+          <input
+            type="search"
+            id="qHome"
+            class="input"
+            placeholder="Ex: farmácia, oficina, Vila Nova..."
+            autocomplete="off"
+          />
+          <select id="catHome" aria-label="Filtrar por categoria">
+            <option value="">Todas as categorias</option>
+          </select>
+          <a class="btn btn-primary" href="categorias.html">Ver todas</a>
+          <a class="btn btn-green" href="anunciar.html">Anunciar empresa</a>
+        </div>
+      </section>
+
+      <!-- KPIs -->
+      <section class="kpis" aria-label="Estatísticas">
+        <article class="kpi">
+          <div class="n" id="kpiTotal">0</div>
+          <div class="t">Empresas</div>
+        </article>
+        <article class="kpi">
+          <div class="n" id="kpiDestaque">0</div>
+          <div class="t">Destaques</div>
+        </article>
+        <article class="kpi">
+          <div class="n" id="kpiVip">0</div>
+          <div class="t">VIP</div>
+        </article>
+        <article class="kpi">
+          <div class="n" id="kpiBairros">0</div>
+          <div class="t">Bairros</div>
+        </article>
+      </section>
+
+      <!-- Filtros -->
+      <section class="filtros" role="group" aria-label="Filtrar por plano">
+        <button class="filtro filtro--ativo" data-filtro="todos" type="button">
+          Todos
+        </button>
+        <button class="filtro" data-filtro="vip" type="button">🔥 VIP</button>
+        <button class="filtro" data-filtro="pro" type="button">⭐ Pro</button>
+        <button class="filtro" data-filtro="basico" type="button">
+          🆓 Básico
+        </button>
+        <button class="filtro" data-filtro="destaque" type="button">
+          ⭐ Em Destaque
+        </button>
+      </section>
+
+      <!-- Lista de Empresas -->
+      <section aria-labelledby="titulo-empresas">
+        <header class="card" style="margin-top: 16px">
+          <h2 id="titulo-empresas" style="margin: 0 0 6px; font-size: 18px">
+            🏢 Empresas em Destaque
+          </h2>
+          <p class="meta" id="infoEmpresas">Carregando...</p>
+        </header>
+
+        <div id="listaHome" class="list" style="margin-top: 12px">
+          <!-- Preenchido via JavaScript -->
+        </div>
+      </section>
+
+      <!-- Ver Todas -->
+      <div class="text-center mt-24">
+        <a href="categorias.html" class="btn btn-outline"
+          >Ver todas as empresas →</a
+        >
+      </div>
+
+      <!-- Seção de Planos -->
+      <section class="secao-planos" aria-labelledby="titulo-planos">
+        <h2 id="titulo-planos" class="text-center" style="margin-bottom: 8px">
+          💼 Escolha o plano ideal para seu negócio
+        </h2>
+        <p style="text-align: center; color: var(--muted); margin-bottom: 24px">
+          Do básico ao profissional, temos a solução perfeita
+        </p>
+
+        <div class="planos-grid">
+          <article class="plano-item">
+            <div style="font-size: 32px; margin-bottom: 8px">🆓</div>
+            <h3>Básico</h3>
+            <div
+              style="
+                font-size: 24px;
+                font-weight: 800;
+                color: var(--color-basic);
+                margin: 8px 0;
+              "
+            >
+              200 MT
+            </div>
+            <ul style="list-style: none; font-size: 14px; color: var(--muted)">
+              <li>✓ 3 fotos da empresa</li>
+              <li>✓ Descrição completa</li>
+              <li>✓ WhatsApp integrado</li>
+            </ul>
+          </article>
+
+          <article class="plano-item plano-item--pro">
+            <span class="plano-item__badge">POPULAR</span>
+            <div style="font-size: 32px; margin-bottom: 8px">⭐</div>
+            <h3>Pro</h3>
+            <div
+              style="
+                font-size: 24px;
+                font-weight: 800;
+                color: var(--color-pro);
+                margin: 8px 0;
+              "
+            >
+              500 MT
+            </div>
+            <ul style="list-style: none; font-size: 14px; color: var(--muted)">
+              <li>✓ 10 fotos da empresa</li>
+              <li>✓ Página dedicada com banner</li>
+              <li>✓ Links redes sociais</li>
+            </ul>
+          </article>
+
+          <article class="plano-item plano-item--vip">
+            <div style="font-size: 32px; margin-bottom: 8px">🔥</div>
+            <h3>VIP</h3>
+            <div
+              style="
+                font-size: 24px;
+                font-weight: 800;
+                color: var(--color-vip);
+                margin: 8px 0;
+              "
+            >
+              1.500 MT
+            </div>
+            <ul style="list-style: none; font-size: 14px; color: var(--muted)">
+              <li>✓ Fotos ilimitadas</li>
+              <li>✓ Página profissional completa</li>
+              <li>✓ SEO & Analytics</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="text-center mt-24">
+          <a href="anunciar.html" class="btn btn-primary"
+            >Ver todos os planos →</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+      <p>&copy; <span id="ano"></span> Guia de Negócios</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+      /**
+       * ============================================
+       * CONFIGURAÇÃO
+       * ============================================
+       */
+      const CONFIG = {
+        CHAVE_EMPRESAS: "guia_chimoio_empresas_v2",
+        LIMITE_LISTAGEM: 12,
+        CATEGORIAS: [
+          "Restaurantes",
+          "Farmácias",
+          "Oficinas",
+          "Escolas",
+          "Clínicas",
+          "Supermercados",
+          "Salões de Beleza",
+          "Alfaiatarias",
+          "Materiais de Construção",
+          "Transportes",
+          "Hotéis",
+          "ONGs",
+          "Serviços de Informática",
+          "Eletrodomésticos",
+          "Eventos & Decoração",
+          "Bancos",
+          "Segurança",
+          "Imobiliárias",
+          "Outros",
+        ],
+      };
+
+      /**
+       * ============================================
+       * ESTADO
+       * ============================================
+       */
+      const Estado = {
+        filtroPlano: "todos",
+        termoBusca: "",
+        categoriaSelecionada: "",
+        todasEmpresas: [],
+      };
+
+      /**
+       * ============================================
+       * SERVIÇOS
+       * ============================================
+       */
+      const ServicoEmpresas = {
+        carregar() {
+          try {
+            const dados = localStorage.getItem(CONFIG.CHAVE_EMPRESAS);
+            if (!dados) return [];
+            return JSON.parse(dados).filter((e) => e.ativo !== false);
+          } catch (erro) {
+            console.error("Erro ao carregar:", erro);
+            return [];
+          }
+        },
+
+        filtrar() {
+          let resultado = [...Estado.todasEmpresas];
+
+          if (Estado.filtroPlano !== "todos") {
+            if (Estado.filtroPlano === "destaque") {
+              resultado = resultado.filter((e) => e.destaque);
+            } else {
+              resultado = resultado.filter(
+                (e) => e.plano === Estado.filtroPlano,
+              );
+            }
+          }
+
+          if (Estado.termoBusca) {
+            const termo = Estado.termoBusca.toLowerCase();
+            resultado = resultado.filter(
+              (e) =>
+                e.nome.toLowerCase().includes(termo) ||
+                e.bairro.toLowerCase().includes(termo) ||
+                e.categoria.toLowerCase().includes(termo) ||
+                (e.descricao && e.descricao.toLowerCase().includes(termo)),
+            );
+          }
+
+          if (Estado.categoriaSelecionada) {
+            resultado = resultado.filter(
+              (e) => e.categoria === Estado.categoriaSelecionada,
+            );
+          }
+
+          return resultado;
+        },
+
+        ordenar(empresas) {
+          const prioridade = { vip: 3, pro: 2, basico: 1 };
+          return empresas.sort((a, b) => {
+            const prioA = prioridade[a.plano] || 0;
+            const prioB = prioridade[b.plano] || 0;
+            if (prioB !== prioA) return prioB - prioA;
+            if (b.destaque && !a.destaque) return 1;
+            if (a.destaque && !b.destaque) return -1;
+            return a.nome.localeCompare(b.nome);
+          });
+        },
+      };
+
+      /**
+       * ============================================
+       * RENDERIZAÇÃO (CORREÇÃO BASE64)
+       * ============================================
+       */
+      const Renderizador = {
+        /**
+         * Renderiza card de empresa com suporte a imagens Base64
+         */
+        card(empresa, indice) {
+          const plano = empresa.plano || "basico";
+          const classes = `empresa-card empresa-card--${plano}${empresa.destaque ? " empresa-card--destaque" : ""}`;
+
+          // Badge do plano
+          const badgePlano = `<span class="empresa-card__badge-plano empresa-card__badge-plano--${plano}">${this._iconePlano(plano)} ${plano.toUpperCase()}</span>`;
+
+          // Verificado (Pro/VIP)
+          const verificado =
+            plano !== "basico"
+              ? '<span class="empresa-card__verificado">✓ Verificado</span>'
+              : "";
+
+          // Badge destaque
+          const badgeDestaque = empresa.destaque
+            ? '<span class="empresa-card__badge-destaque">⭐ DESTAQUE</span>'
+            : "";
+
+          // Banner (apenas VIP)
+          const banner =
+            plano === "vip" && empresa.banner
+              ? `<img src="${empresa.banner}" alt="Banner" class="empresa-card__banner" loading="lazy" onerror="this.style.display='none'">`
+              : "";
+
+          // Fotos (sistema Base64)
+          const fotos = this._renderizarFotos(empresa);
+
+          // Redes sociais
+          const redes = this._renderizarRedes(empresa, plano);
+
+          // Estatísticas
+          const stats = `<div class="empresa-card__stats">
+                    <span>📷 ${empresa.imagens ? empresa.imagens.length : 0} fotos</span>
+                    ${empresa.servicos ? `<span>🛎️ ${empresa.servicos.length} serviços</span>` : ""}
+                </div>`;
+
+          // Ações
+          const whatsapp =
+            empresa.whatsapp || empresa.contacto.replace(/\D/g, "");
+          const mensagem = encodeURIComponent(
+            `Olá! Vi a empresa "${empresa.nome}" no Guia de Negócios de Chimoio. Quero mais informações.`,
+          );
+
+          const acoes = `<div class="empresa-card__acoes">
+                    <a href="https://wa.me/${whatsapp}?text=${mensagem}" target="_blank" rel="noopener noreferrer" class="btn green">💬 WhatsApp</a>
+                    <button type="button" class="btn" onclick="Utilidades.copiar('${empresa.contacto}')">📋 Copiar</button>
+                    <a href="empresa.html?id=${empresa.id}" class="btn btn-primary">ℹ️ Ver página</a>
+                </div>`;
+
+          // CTA Upgrade (Básico sem destaque)
+          const upgrade =
+            plano === "basico" && !empresa.destaque
+              ? `<button type="button" class="empresa-card__upgrade" onclick="window.location.href='anunciar.html'">🚀 Destaque sua empresa! Upgrade para Pro ou VIP</button>`
+              : "";
+
+          return `
+                    <article class="${classes}" style="animation: fadeIn 0.5s ease ${indice * 0.1}s both;">
+                        ${badgeDestaque}
+                        ${banner}
+                        <header style="margin-bottom: 12px;">
+                            <h3 class="empresa-card__titulo">
+                                ${empresa.nome}
+                                ${badgePlano}
+                                ${verificado}
+                            </h3>
+                            <p class="empresa-card__meta">${empresa.categoria} • ${empresa.bairro}</p>
+                        </header>
+                        ${fotos}
+                        <p class="empresa-card__meta">📞 ${empresa.contacto} • ⏰ ${empresa.horario || "Horário não informado"}</p>
+                        ${empresa.descricao ? `<p class="empresa-card__meta" style="margin-top: 8px; line-height: 1.6;">${empresa.descricao.substring(0, 100)}${empresa.descricao.length > 100 ? "..." : ""}</p>` : ""}
+                        ${
+                          empresa.servicos && empresa.servicos.length > 0
+                            ? `
+                        <div class="servicos-list" style="margin-top: 12px;">
+                            ${empresa.servicos.map((s) => `<span class="servico-tag">${s}</span>`).join("")}
+                        </div>
+                        `
+                            : ""
+                        }
+                        ${redes}
+                        ${stats}
+                        ${acoes}
+                        ${upgrade}
+                    </article>
+                `;
+        },
+
+        /**
+         * Renderiza fotos em Base64
+         */
+        _renderizarFotos(empresa) {
+          if (!empresa.imagens || empresa.imagens.length === 0) return "";
+
+          const visiveis = empresa.imagens.slice(0, 3);
+          const restantes = empresa.imagens.length - 3;
+
+          return `<div class="empresa-card__fotos">
+                    ${visiveis
+                      .map(
+                        (img, idx) => `
+                        <img src="${img}" 
+                             alt="${empresa.nome} - Foto ${idx + 1}" 
+                             class="empresa-card__foto" 
+                             loading="lazy"
+                             onerror="this.classList.add('empresa-card__foto--erro')">
+                    `,
+                      )
+                      .join("")}
+                    ${restantes > 0 ? `<div class="empresa-card__foto-mais">+${restantes}</div>` : ""}
+                </div>`;
+        },
+
+        /**
+         * Renderiza redes sociais
+         */
+        _renderizarRedes(empresa, plano) {
+          if (plano === "basico" || !empresa.redes) return "";
+
+          const redes = [];
+          if (empresa.redes.facebook)
+            redes.push({
+              icone: "f",
+              url: empresa.redes.facebook,
+              cor: "#1877f2",
+            });
+          if (empresa.redes.instagram)
+            redes.push({
+              icone: "📷",
+              url: empresa.redes.instagram,
+              cor: "#e4405f",
+            });
+
+          if (redes.length === 0) return "";
+
+          return `<div class="empresa-card__redes">
+                    ${redes
+                      .map(
+                        (r) => `
+                        <a href="${r.url}" target="_blank" rel="noopener noreferrer" 
+                           class="empresa-card__rede" 
+                           style="background: ${r.cor}20; color: ${r.cor};">
+                            ${r.icone}
+                        </a>
+                    `,
+                      )
+                      .join("")}
+                </div>`;
+        },
+
+        _iconePlano(plano) {
+          return { basico: "🆓", pro: "⭐", vip: "🔥" }[plano] || "";
+        },
+
+        vazio() {
+          const temFiltro =
+            Estado.filtroPlano !== "todos" ||
+            Estado.termoBusca ||
+            Estado.categoriaSelecionada;
+          return `
+                    <div class="card" style="text-align: center; padding: 40px;">
+                        <p style="color: var(--muted); margin-bottom: 16px;">
+                            ${temFiltro ? "Nenhuma empresa encontrada com estes filtros." : "Nenhuma empresa cadastrada ainda."}
+                        </p>
+                        ${
+                          temFiltro
+                            ? '<button class="btn btn-primary" onclick="location.reload()">Limpar filtros</button>'
+                            : '<a href="anunciar.html" class="btn btn-primary">Seja o primeiro a anunciar</a>'
+                        }
+                    </div>
+                `;
+        },
+      };
+
+      /**
+       * ============================================
+       * UTILIDADES
+       * ============================================
+       */
+      const Utilidades = {
+        async copiar(texto) {
+          try {
+            await navigator.clipboard.writeText(texto);
+            alert("📋 Contacto copiado!");
+          } catch {
+            const input = document.createElement("input");
+            input.value = texto;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand("copy");
+            document.body.removeChild(input);
+            alert("📋 Contacto copiado!");
+          }
+        },
+
+        atualizarAno() {
+          document.getElementById("ano").textContent = new Date().getFullYear();
+        },
+
+        configurarTema() {
+          const toggle = document.getElementById("themeToggle");
+          const icone = document.getElementById("themeIcon");
+          const root = document.documentElement;
+
+          const tema = localStorage.getItem("theme") || "dark";
+          root.setAttribute("data-theme", tema);
+          icone.textContent = tema === "dark" ? "☀️" : "🌙";
+
+          toggle.addEventListener("click", () => {
+            const atual = root.getAttribute("data-theme");
+            const proximo = atual === "dark" ? "light" : "dark";
+            root.setAttribute("data-theme", proximo);
+            localStorage.setItem("theme", proximo);
+            icone.textContent = proximo === "dark" ? "☀️" : "🌙";
+          });
+        },
+      };
+
+      /**
+       * ============================================
+       * APLICAÇÃO
+       * ============================================
+       */
+      const App = {
+        init() {
+          Estado.todasEmpresas = ServicoEmpresas.carregar();
+
+          this._preencherCategorias();
+          this._configurarEventos();
+          Utilidades.atualizarAno();
+          Utilidades.configurarTema();
+
+          this.atualizar();
+
+          window.addEventListener("storage", (e) => {
+            if (e.key === CONFIG.CHAVE_EMPRESAS) {
+              Estado.todasEmpresas = ServicoEmpresas.carregar();
+              this.atualizar();
+            }
+          });
+        },
+
+        _preencherCategorias() {
+          const select = document.getElementById("catHome");
+          const opcoes = CONFIG.CATEGORIAS.map(
+            (c) => `<option value="${c}">${c}</option>`,
+          ).join("");
+          select.insertAdjacentHTML("beforeend", opcoes);
+        },
+
+        _configurarEventos() {
+          document.getElementById("qHome").addEventListener("input", (e) => {
+            Estado.termoBusca = e.target.value.toLowerCase().trim();
+            this.atualizar();
+          });
+
+          document.getElementById("catHome").addEventListener("change", (e) => {
+            Estado.categoriaSelecionada = e.target.value;
+            this.atualizar();
+          });
+
+          document.querySelectorAll(".filtro").forEach((botao) => {
+            botao.addEventListener("click", (e) => {
+              document
+                .querySelectorAll(".filtro")
+                .forEach((b) => b.classList.remove("filtro--ativo"));
+              e.target.classList.add("filtro--ativo");
+              Estado.filtroPlano = e.target.dataset.filtro;
+              this.atualizar();
+            });
+          });
+        },
+
+        atualizar() {
+          const container = document.getElementById("listaHome");
+          const info = document.getElementById("infoEmpresas");
+
+          const filtradas = ServicoEmpresas.filtrar();
+          const ordenadas = ServicoEmpresas.ordenar(filtradas);
+          const limitadas = ordenadas.slice(0, CONFIG.LIMITE_LISTAGEM);
+
+          // KPIs
+          document.getElementById("kpiTotal").textContent =
+            Estado.todasEmpresas.length;
+          document.getElementById("kpiDestaque").textContent =
+            Estado.todasEmpresas.filter((e) => e.destaque).length;
+          document.getElementById("kpiVip").textContent =
+            Estado.todasEmpresas.filter((e) => e.plano === "vip").length;
+          document.getElementById("kpiBairros").textContent = new Set(
+            Estado.todasEmpresas.map((e) => e.bairro),
+          ).size;
+
+          info.textContent = `Mostrando ${Math.min(limitadas.length, filtradas.length)} de ${filtradas.length} empresas`;
+
+          container.innerHTML =
+            limitadas.length === 0
+              ? Renderizador.vazio()
+              : limitadas.map((e, i) => Renderizador.card(e, i)).join("");
+        },
+      };
+
+      // Iniciar
+      document.readyState === "loading"
+        ? document.addEventListener("DOMContentLoaded", () => App.init())
+        : App.init();
+    </script>
+  </body>
+</html>

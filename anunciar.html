@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Anuncie sua empresa no Guia de Chimoio" />
+    <title>Anunciar • Guia de Negócios de Chimoio</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .planos-comparison {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-top: 32px;
+      }
+
+      .plano-card {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: 20px;
+        padding: 32px;
+        position: relative;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .plano-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .plano-card.destaque {
+        border-color: var(--accent);
+        transform: scale(1.05);
+      }
+
+      .plano-card.destaque:hover {
+        transform: scale(1.05) translateY(-4px);
+      }
+
+      .plano-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--accent);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .plano-header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .plano-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+      }
+
+      .plano-nome {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .plano-preco {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--accent);
+      }
+
+      .plano-preco span {
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .plano-features {
+        list-style: none;
+        margin: 24px 0;
+      }
+
+      .plano-features li {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .plano-features li:last-child {
+        border-bottom: none;
+      }
+
+      .plano-features .check {
+        color: #10b981;
+        font-weight: 700;
+      }
+
+      .plano-features .cross {
+        color: var(--muted);
+        opacity: 0.5;
+      }
+
+      .plano-cta {
+        width: 100%;
+        padding: 16px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .plano-cta.basico {
+        background: var(--bg);
+        color: var(--text);
+        border: 2px solid var(--line);
+      }
+
+      .plano-cta.pro {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .plano-cta.vip {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+      }
+
+      .plano-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .como-funciona {
+        margin-top: 48px;
+        padding: 32px;
+        background: var(--card);
+        border-radius: 20px;
+        border: 1px solid var(--line);
+      }
+
+      .passos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+      }
+
+      .passo {
+        text-align: center;
+        padding: 24px;
+      }
+
+      .passo-numero {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin: 0 auto 16px;
+      }
+
+      @media (max-width: 768px) {
+        .plano-card.destaque {
+          transform: none;
+        }
+        .plano-card.destaque:hover {
+          transform: translateY(-4px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="wrap">
+        <div class="brand">
+          <span> Guia de Negocio</span>
+          <span class="badge">Anunciar</span>
+        </div>
+        <div class="menu">
+          <a href="index.html">Home</a>
+          <a href="categorias.html">Categorias</a>
+          <a class="active" href="anunciar.html">Anunciar</a>
+          <a href="contato.html">Contato</a>
+          <button id="themeToggle" class="btn" title="Alternar tema">
+            <span id="themeIcon">☀️</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
+      <section class="hero">
+        <h1>Escolha o plano ideal para seu negócio</h1>
+        <p>
+          Do básico ao profissional, temos a solução perfeita para aumentar sua
+          visibilidade em Chimoio.
+        </p>
+      </section>
+
+      <div class="planos-comparison">
+        <!-- Plano Básico -->
+        <div class="plano-card">
+          <div class="plano-header">
+            <div class="plano-icon">🆓</div>
+            <div class="plano-nome">Básico</div>
+            <div class="plano-preco">500 <span>/ mês</span></div>
+          </div>
+
+          <ul class="plano-features">
+            <li><span class="check">✓</span> 3 fotos da empresa</li>
+            <li><span class="check">✓</span> Descrição completa</li>
+            <li><span class="check">✓</span> WhatsApp integrado</li>
+            <li><span class="check">✓</span> Informações de contacto</li>
+            <li><span class="check">✓</span> Horário de funcionamento</li>
+            <li><span class="cross">✗</span> Página dedicada</li>
+            <li><span class="cross">✗</span> Redes sociais</li>
+            <li><span class="cross">✗</span> Destaque nas buscas</li>
+          </ul>
+
+          <a
+            href="https://wa.me/258842043370?text=Olá! Quero cadastrar minha empresa no plano BÁSICO do Guia de Chimoio."
+            class="plano-cta basico"
+            target="_blank"
+          >
+            Começar Basico
+          </a>
+        </div>
+
+        <!-- Plano Pro -->
+        <div class="plano-card destaque">
+          <div class="plano-badge">MAIS POPULAR</div>
+          <div class="plano-header">
+            <div class="plano-icon">⭐</div>
+            <div class="plano-nome">Pro</div>
+            <div class="plano-preco">800 <span>MT / mês</span></div>
+          </div>
+
+          <ul class="plano-features">
+            <li><span class="check">✓</span> 10 fotos da empresa</li>
+            <li><span class="check">✓</span> Página dedicada com banner</li>
+            <li><span class="check">✓</span> Links redes sociais</li>
+            <li><span class="check">✓</span> Cores personalizadas</li>
+            <li><span class="check">✓</span> Prioridade nas buscas</li>
+            <li><span class="check">✓</span> Tudo do plano Básico</li>
+            <li><span class="cross">✗</span> SEO avançado</li>
+            <li><span class="cross">✗</span> Analytics</li>
+          </ul>
+
+          <a
+            href="https://wa.me/258842043370?text=Olá! Quero cadastrar minha empresa no plano PRO do Guia de Chimoio."
+            class="plano-cta pro"
+            target="_blank"
+          >
+            Escolher Pro
+          </a>
+        </div>
+
+        <!-- Plano VIP -->
+        <div class="plano-card">
+          <div class="plano-header">
+            <div class="plano-icon">🔥</div>
+            <div class="plano-nome">VIP</div>
+            <div class="plano-preco">1.500 <span>MT / mês</span></div>
+          </div>
+
+          <ul class="plano-features">
+            <li><span class="check">✓</span> Fotos ilimitadas</li>
+            <li><span class="check">✓</span> Página profissional completa</li>
+            <li><span class="check">✓</span> SEO e palavras-chave</li>
+            <li><span class="check">✓</span> Google Analytics</li>
+            <li><span class="check">✓</span> Pixel do Facebook</li>
+            <li><span class="check">✓</span> Destaque máximo no site</li>
+            <li><span class="check">✓</span> Relatório mensal</li>
+            <li><span class="check">✓</span> Tudo do plano Pro</li>
+          </ul>
+
+          <a
+            href="https://wa.me/258842043370?text=Olá! Quero cadastrar minha empresa no plano VIP do Guia de Chimoio."
+            class="plano-cta vip"
+            target="_blank"
+          >
+            Ser VIP
+          </a>
+        </div>
+      </div>
+
+      <div class="como-funciona">
+        <h2 style="text-align: center">📋 Como funciona?</h2>
+        <div class="passos">
+          <div class="passo">
+            <div class="passo-numero">1</div>
+            <h4>Escolha seu plano</h4>
+            <p style="color: var(--muted); font-size: 14px">
+              Selecione o pacote que melhor atende suas necessidades
+            </p>
+          </div>
+          <div class="passo">
+            <div class="passo-numero">2</div>
+            <h4>Envie seus dados</h4>
+            <p style="color: var(--muted); font-size: 14px">
+              Clique no botão e envie as informações pelo WhatsApp
+            </p>
+          </div>
+          <div class="passo">
+            <div class="passo-numero">3</div>
+            <h4>Publicação</h4>
+            <p style="color: var(--muted); font-size: 14px">
+              Sua empresa será publicada em até 24 horas
+            </p>
+          </div>
+          <div class="passo">
+            <div class="passo-numero">4</div>
+            <h4>Comece a vender</h4>
+            <p style="color: var(--muted); font-size: 14px">
+              Receba clientes e cresça seu negócio
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style="
+          text-align: center;
+          margin-top: 48px;
+          padding: 32px;
+          background: var(--card);
+          border-radius: 20px;
+          border: 1px solid var(--line);
+        "
+      >
+        <h3 style="margin-bottom: 16px">💡 Precisa de ajuda para escolher?</h3>
+        <p style="color: var(--muted); margin-bottom: 24px">
+          Nossa equipe pode ajudar a encontrar a melhor solução para seu
+          negócio.
+        </p>
+        <a
+          href="https://wa.me/258842043370?text=Olá! Preciso de ajuda para escolher o melhor plano para minha empresa."
+          class="btn btn-primary"
+          target="_blank"
+        >
+          💬 Falar com Consultor
+        </a>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; <span id="ano"></span> Guia de Negócios</p>
+    </footer>
+
+    <script>
+      // Atualizar ano
+      document.getElementById("ano").textContent = new Date().getFullYear();
+
+      // Tema
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = document.getElementById("themeIcon");
+      const root = document.documentElement;
+
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      root.setAttribute("data-theme", savedTheme);
+      themeIcon.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+
+      themeToggle.addEventListener("click", () => {
+        const current = root.getAttribute("data-theme");
+        const next = current === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+        themeIcon.textContent = next === "dark" ? "☀️" : "🌙";
+      });
+    </script>
+  </body>
+</html>

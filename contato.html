@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Entre em contato com o Guia de Chimoio" />
+    <title>Contato • Guia de Negócios</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      /* Estilos adicionais para mensagens */
+      .alert {
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+      }
+      .alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .alert-error {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      .alert-info {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav">
+      <div class="wrap">
+        <div class="brand">
+          <span>Guia de Negócios</span>
+          <span class="badge">Contato</span>
+        </div>
+        <div class="menu">
+          <a href="index.html">Home</a>
+          <a href="categorias.html">Categorias</a>
+          <a href="anunciar.html">Anunciar</a>
+          <a class="active" href="contato.html">Contato</a>
+          <button id="themeToggle" class="btn" title="Alternar tema">
+            <span id="themeIcon">🌙</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="hero">
+        <h1 class="h1">Fale conosco</h1>
+        <p class="p">
+          Tem dúvidas, sugestões ou quer anunciar? Entre em contato!
+        </p>
+      </div>
+
+      <!-- ALERTAS -->
+      <div id="alertContainer"></div>
+
+      <!-- Formulário -->
+      <div
+        id="formContainer"
+        class="card"
+        style="max-width: 600px; margin: 0 auto"
+      >
+        <form id="formContato">
+          <div class="form-group" style="margin-bottom: 20px">
+            <label
+              for="nome"
+              style="
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: var(--text);
+              "
+            >
+              Nome completo *
+            </label>
+            <input
+              type="text"
+              id="nome"
+              name="nome"
+              required
+              placeholder="Seu nome completo"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 10px;
+                border: 1px solid var(--line);
+                background: var(--bg);
+                color: var(--text);
+                font-size: 14px;
+              "
+            />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px">
+            <label
+              for="email"
+              style="
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: var(--text);
+              "
+            >
+              Email *
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder="seu@email.com"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 10px;
+                border: 1px solid var(--line);
+                background: var(--bg);
+                color: var(--text);
+                font-size: 14px;
+              "
+            />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px">
+            <label
+              for="telefone"
+              style="
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: var(--text);
+              "
+            >
+              Telefone *
+            </label>
+            <input
+              type="tel"
+              id="telefone"
+              name="telefone"
+              required
+              placeholder="+258 84 000 0000"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 10px;
+                border: 1px solid var(--line);
+                background: var(--bg);
+                color: var(--text);
+                font-size: 14px;
+              "
+            />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px">
+            <label
+              for="assunto"
+              style="
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: var(--text);
+              "
+            >
+              Assunto *
+            </label>
+            <select
+              id="assunto"
+              name="assunto"
+              required
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 10px;
+                border: 1px solid var(--line);
+                background: var(--bg);
+                color: var(--text);
+                font-size: 14px;
+              "
+            >
+              <option value="">Selecione um assunto...</option>
+              <option value="Quero anunciar minha empresa">
+                📢 Quero anunciar minha empresa
+              </option>
+              <option value="Dúvida sobre pagamento">
+                💳 Dúvida sobre pagamento
+              </option>
+              <option value="Sugestão de melhoria">
+                💡 Sugestão de melhoria
+              </option>
+              <option value="Corrigir informação">
+                ✏️ Corrigir informação
+              </option>
+              <option value="Problema no site">⚠️ Problema no site</option>
+              <option value="Elogio">⭐ Elogio</option>
+              <option value="Cancelamento">❌ Cancelamento</option>
+              <option value="Outro">📋 Outro</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 24px">
+            <label
+              for="mensagem"
+              style="
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: var(--text);
+              "
+            >
+              Mensagem *
+            </label>
+            <textarea
+              id="mensagem"
+              name="mensagem"
+              required
+              placeholder="Escreva sua mensagem aqui..."
+              style="
+                width: 100%;
+                min-height: 150px;
+                padding: 12px 16px;
+                border-radius: 10px;
+                border: 1px solid var(--line);
+                background: var(--bg);
+                color: var(--text);
+                font-size: 14px;
+                resize: vertical;
+                font-family: inherit;
+              "
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="btnEnviar"
+            style="width: 100%; padding: 14px; font-size: 16px"
+          >
+            📤 Enviar Mensagem
+          </button>
+        </form>
+      </div>
+
+      <!-- Mensagem de sucesso -->
+      <div
+        id="mensagemSucesso"
+        class="card"
+        style="
+          max-width: 600px;
+          margin: 0 auto;
+          display: none;
+          text-align: center;
+          padding: 40px;
+        "
+      >
+        <div style="font-size: 64px; margin-bottom: 20px">✅</div>
+        <h3 style="margin-bottom: 12px; color: var(--text)">
+          Mensagem enviada com sucesso!
+        </h3>
+        <p style="color: var(--muted); margin-bottom: 24px">
+          Obrigado pelo contacto. Nossa equipa analisará sua mensagem e
+          responderá em breve.
+        </p>
+        <div
+          style="
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+          "
+        >
+          <button onclick="novaMensagem()" class="btn btn-outline">
+            Enviar outra mensagem
+          </button>
+          <a href="../index.html" class="btn btn-green">Voltar ao início</a>
+        </div>
+      </div>
+
+      <hr
+        style="
+          border: none;
+          border-top: 1px solid var(--line);
+          margin: 40px auto;
+          max-width: 600px;
+        "
+      />
+
+      <div class="text-center" style="max-width: 600px; margin: 0 auto">
+        <p style="color: var(--muted); margin-bottom: 16px">
+          Ou fale direto pelo WhatsApp:
+        </p>
+        <a
+          href="https://wa.me/258842043370?text=Olá! Entrei em contato pelo site do Guia de Chimoio."
+          class="btn btn-green"
+          target="_blank"
+          style="display: inline-flex; align-items: center; gap: 8px"
+        >
+          💬 Chamar no WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <div class="footer" style="margin-top: 60px">
+      <p>&copy; <span id="ano"></span> Guia de Negócios</p>
+    </div>
+
+    <!-- JavaScript INLINE - Funciona imediatamente -->
+    <script>
+      // Configuração
+      const CONFIG = {
+        MENSAGENS_KEY: "guia_chimoio_mensagens_v2",
+        META_KEY: "guia_chimoio_mensagens_meta_v2",
+      };
+
+      // Atualizar ano
+      document.getElementById("ano").textContent = new Date().getFullYear();
+
+      // Função para mostrar alertas
+      function showAlert(message, type = "error") {
+        const container = document.getElementById("alertContainer");
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `alert alert-${type}`;
+
+        const icons = {
+          error: "❌",
+          success: "✅",
+          info: "ℹ️",
+        };
+
+        alertDiv.innerHTML = `${icons[type]} ${message}`;
+        container.innerHTML = "";
+        container.appendChild(alertDiv);
+
+        // Auto-remover após 5 segundos
+        setTimeout(() => {
+          alertDiv.remove();
+        }, 5000);
+      }
+
+      // Função para salvar mensagem no localStorage
+      function salvarMensagemLocal(data) {
+        try {
+          // Ler mensagens existentes
+          let mensagens = [];
+          const existentes = localStorage.getItem(CONFIG.MENSAGENS_KEY);
+          if (existentes) {
+            mensagens = JSON.parse(existentes);
+          }
+
+          // Criar nova mensagem
+          const novaMensagem = {
+            id: Date.now(),
+            nome: data.nome,
+            email: data.email,
+            telefone: data.telefone,
+            assunto: data.assunto,
+            mensagem: data.mensagem,
+            data_envio: new Date().toISOString(),
+            lida: false,
+            respondida: false,
+            prioridade: "media",
+            origem: "formulario_contato",
+            ip: "127.0.0.1",
+          };
+
+          // Adicionar no início
+          mensagens.unshift(novaMensagem);
+
+          // Salvar
+          localStorage.setItem(CONFIG.MENSAGENS_KEY, JSON.stringify(mensagens));
+
+          // Atualizar metadata
+          const meta = {
+            total: mensagens.length,
+            nao_lidas: mensagens.filter((m) => !m.lida).length,
+            ultima_atualizacao: new Date().toISOString(),
+          };
+          localStorage.setItem(CONFIG.META_KEY, JSON.stringify(meta));
+
+          console.log("✅ Mensagem salva:", novaMensagem);
+          return { success: true, id: novaMensagem.id };
+        } catch (error) {
+          console.error("❌ Erro ao salvar:", error);
+          return { success: false, error: error.message };
+        }
+      }
+
+      // Handler do formulário
+      document
+        .getElementById("formContato")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const btn = document.getElementById("btnEnviar");
+          btn.disabled = true;
+          btn.innerHTML = "⏳ Enviando...";
+
+          // Coletar dados
+          const data = {
+            nome: document.getElementById("nome").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            telefone: document.getElementById("telefone").value.trim(),
+            assunto: document.getElementById("assunto").value,
+            mensagem: document.getElementById("mensagem").value.trim(),
+          };
+
+          // Validar
+          if (!data.nome || !data.email || !data.assunto || !data.mensagem) {
+            showAlert(
+              "Por favor, preencha todos os campos obrigatórios.",
+              "error",
+            );
+            btn.disabled = false;
+            btn.innerHTML = "📤 Enviar Mensagem";
+            return;
+          }
+
+          // Tentar salvar
+          try {
+            const resultado = salvarMensagemLocal(data);
+
+            if (resultado.success) {
+              // Mostrar sucesso
+              document.getElementById("formContainer").style.display = "none";
+              document.getElementById("mensagemSucesso").style.display =
+                "block";
+              document.getElementById("alertContainer").innerHTML = "";
+
+              // Disparar evento para outras abas
+              window.dispatchEvent(
+                new StorageEvent("storage", {
+                  key: CONFIG.MENSAGENS_KEY,
+                }),
+              );
+
+              showAlert("Mensagem enviada com sucesso!", "success");
+            } else {
+              throw new Error(resultado.error);
+            }
+          } catch (error) {
+            console.error("Erro:", error);
+            showAlert(
+              "Erro ao enviar mensagem. Detalhes: " + error.message,
+              "error",
+            );
+            btn.disabled = false;
+            btn.innerHTML = "📤 Enviar Mensagem";
+          }
+        });
+
+      // Função para nova mensagem
+      function novaMensagem() {
+        document.getElementById("formContato").reset();
+        document.getElementById("formContainer").style.display = "block";
+        document.getElementById("mensagemSucesso").style.display = "none";
+        document.getElementById("alertContainer").innerHTML = "";
+        document.getElementById("btnEnviar").disabled = false;
+        document.getElementById("btnEnviar").innerHTML = "📤 Enviar Mensagem";
+      }
+
+      // Tema escuro/claro
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = document.getElementById("themeIcon");
+      const root = document.documentElement;
+
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      root.setAttribute("data-theme", savedTheme);
+      themeIcon.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+
+      themeToggle.addEventListener("click", () => {
+        const current = root.getAttribute("data-theme");
+        const next = current === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+        themeIcon.textContent = next === "dark" ? "☀️" : "🌙";
+      });
+    </script>
+  </body>
+</html>

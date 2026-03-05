@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Todas as categorias de empresas em Chimoio"
+    />
+    <title>Categorias • Guia de Negócios</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="wrap">
+        <div class="brand">
+          <span>📍 Guia de Negócios</span>
+          <span class="badge">Categorias</span>
+        </div>
+        <div class="menu">
+          <a href="index.html">Home</a>
+          <a class="active" href="categorias.html">Categorias</a>
+          <a href="anunciar.html">Anunciar</a>
+          <a href="contato.html">Contato</a>
+          <button id="themeToggle" class="btn" title="Alternar tema">
+            <span id="themeIcon">☀️</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
+      <section class="hero">
+        <h1>Todas as Categorias</h1>
+        <p>
+          Encontre empresas por categoria específica. Use os filtros para
+          refinar sua busca.
+        </p>
+
+        <div class="searchbar">
+          <input
+            type="search"
+            id="qAll"
+            class="input"
+            placeholder="Pesquisar empresas..."
+          />
+          <select id="catAll"></select>
+          <a href="anunciar.html" class="btn btn-green">+ Adicionar empresa</a>
+        </div>
+      </section>
+
+      <div id="listaAll" class="list"></div>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; <span id="ano"></span> Guia de Negócios de Chimoio</p>
+    </footer>
+
+    <script src="main.js"></script>
+  </body>
+</html>
