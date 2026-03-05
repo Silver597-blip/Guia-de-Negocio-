@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mensagens • Painel Administrativo</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <style>
+      .mensagens-layout {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 20px;
+        min-height: 600px;
+      }
+      .mensagens-lista {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .mensagens-lista-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line);
+        background: var(--bg);
+      }
+      .mensagem-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .mensagem-item:hover {
+        background: rgba(59, 130, 246, 0.05);
+      }
+      .mensagem-item.active {
+        background: rgba(59, 130, 246, 0.1);
+        border-left: 3px solid var(--accent);
+      }
+      .mensagem-item.nao-lida {
+        background: rgba(59, 130, 246, 0.03);
+      }
+      .mensagem-item.nao-lida::before {
+        content: "🔵";
+        position: absolute;
+        right: 20px;
+        font-size: 8px;
+      }
+      .mensagem-preview-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .mensagem-preview-nome {
+        font-weight: 600;
+        color: var(--text);
+      }
+      .mensagem-preview-data {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .mensagem-preview-assunto {
+        font-size: 13px;
+        color: var(--accent);
+        margin-bottom: 4px;
+      }
+      .mensagem-preview-texto {
+        font-size: 13px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .mensagem-detalhe {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 24px;
+      }
+      .mensagem-detalhe-vazio {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--muted);
+      }
+      .badge-urgente {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+      }
+      .badge-alta {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+      }
+      .badge-media {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+      }
+      .badge-baixa {
+        background: rgba(148, 163, 184, 0.1);
+        color: #64748b;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+      }
+      .tabs-filtros {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .tab-filtro {
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .tab-filtro.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+    </style>
+  </head>
+  <body class="admin-body">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">📍</div>
+        <div>
+          <h1>Guia Chimoio</h1>
+          <span>Painel Admin</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li>
+          <a href="dashboard.html"><span class="icon">📊</span> Dashboard</a>
+        </li>
+        <li>
+          <a href="mensagens.html" class="active"
+            ><span class="icon">✉️</span> Mensagens
+            <span id="menuBadge" class="contador-badge" style="display: none"
+              >0</span
+            ></a
+          >
+        </li>
+        <li>
+          <a href="empresas.html"><span class="icon">🏢</span> Empresas</a>
+        </li>
+        <li>
+          <a href="pagamentos.html"><span class="icon">💰</span> Pagamentos</a>
+        </li>
+        <li>
+          <a href="estatisticas.html"
+            ><span class="icon">📈</span> Estatísticas</a
+          >
+        </li>
+        <li>
+          <a href="configuracoes.html"
+            ><span class="icon">⚙️</span> Configurações</a
+          >
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">A</div>
+          <div class="user-details">
+            <div class="user-name">Administrador</div>
+            <div class="user-role">Super Admin</div>
+          </div>
+          <button
+            onclick="logout()"
+            style="
+              background: none;
+              border: none;
+              color: var(--muted);
+              cursor: pointer;
+              font-size: 18px;
+            "
+          >
+            🚪
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="admin-header">
+        <div>
+          <h2 style="font-size: 20px; color: var(--text)">
+            Central de Mensagens
+          </h2>
+          <p style="font-size: 13px; color: var(--muted)">
+            Gerencie as mensagens recebidas
+          </p>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" id="themeToggle" title="Alternar tema">
+            ☀️
+          </button>
+          <button class="btn-icon" onclick="logout()" title="Sair">🚪</button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- Estatísticas -->
+        <div
+          class="stats-grid"
+          style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px"
+        >
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3 id="statTotal">0</h3>
+              <p>Total</p>
+            </div>
+            <div class="stat-icon blue">📨</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3 id="statNaoLidas" style="color: var(--accent)">0</h3>
+              <p>Não Lidas</p>
+            </div>
+            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1)">
+              🔵
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3 id="statPendentes" style="color: var(--warning)">0</h3>
+              <p>Pendentes</p>
+            </div>
+            <div class="stat-icon orange">⏳</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3 id="statRespondidas" style="color: var(--success)">0</h3>
+              <p>Respondidas</p>
+            </div>
+            <div class="stat-icon green">✅</div>
+          </div>
+        </div>
+
+        <!-- Layout -->
+        <div class="mensagens-layout">
+          <!-- Lista -->
+          <div class="mensagens-lista">
+            <div class="mensagens-lista-header">
+              <h3 style="font-size: 16px; margin-bottom: 12px">
+                Caixa de Entrada
+                <span
+                  id="headerBadge"
+                  class="contador-badge"
+                  style="display: none; margin-left: 8px"
+                  >0</span
+                >
+              </h3>
+              <div class="tabs-filtros">
+                <button
+                  class="tab-filtro active"
+                  onclick="filtrar('todas', this)"
+                >
+                  Todas
+                </button>
+                <button class="tab-filtro" onclick="filtrar('nao-lidas', this)">
+                  Não lidas
+                </button>
+                <button class="tab-filtro" onclick="filtrar('pendentes', this)">
+                  Pendentes
+                </button>
+              </div>
+            </div>
+            <div
+              id="listaMensagens"
+              style="max-height: 600px; overflow-y: auto"
+            >
+              <!-- Preenchido via JS -->
+            </div>
+          </div>
+
+          <!-- Detalhe -->
+          <div class="mensagem-detalhe" id="mensagemDetalhe">
+            <div class="mensagem-detalhe-vazio">
+              <span style="font-size: 48px; margin-bottom: 16px">✉️</span>
+              <p>Selecione uma mensagem para visualizar</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- JavaScript INLINE - Funciona imediatamente -->
+    <script>
+      // Configuração
+      const CONFIG = {
+        MENSAGENS_KEY: "guia_chimoio_mensagens_v2",
+        META_KEY: "guia_chimoio_mensagens_meta_v2",
+      };
+
+      // Estado
+      let mensagens = [];
+      let mensagemSelecionada = null;
+      let filtroAtual = "todas";
+
+      // Carregar mensagens
+      function carregarMensagens() {
+        try {
+          const data = localStorage.getItem(CONFIG.MENSAGENS_KEY);
+          if (data) {
+            mensagens = JSON.parse(data);
+          } else {
+            // Criar mensagem de exemplo se vazio
+            mensagens = [
+              {
+                id: 1,
+                nome: "Exemplo",
+                email: "exemplo@email.com",
+                telefone: "+258 84 000 0000",
+                assunto: "Quero anunciar minha empresa",
+                mensagem:
+                  "Esta é uma mensagem de exemplo. Envie uma mensagem real pela página de contato.",
+                data_envio: new Date().toISOString(),
+                lida: false,
+                respondida: false,
+                prioridade: "media",
+              },
+            ];
+            salvarMensagens();
+          }
+          atualizarTudo();
+        } catch (e) {
+          console.error("Erro ao carregar:", e);
+          mensagens = [];
+        }
+      }
+
+      // Salvar mensagens
+      function salvarMensagens() {
+        localStorage.setItem(CONFIG.MENSAGENS_KEY, JSON.stringify(mensagens));
+        atualizarMeta();
+      }
+
+      // Atualizar metadata
+      function atualizarMeta() {
+        const meta = {
+          total: mensagens.length,
+          nao_lidas: mensagens.filter((m) => !m.lida).length,
+          ultima_atualizacao: new Date().toISOString(),
+        };
+        localStorage.setItem(CONFIG.META_KEY, JSON.stringify(meta));
+      }
+
+      // Atualizar tudo
+      function atualizarTudo() {
+        atualizarEstatisticas();
+        atualizarLista();
+        atualizarBadges();
+      }
+
+      // Atualizar estatísticas
+      function atualizarEstatisticas() {
+        const total = mensagens.length;
+        const naoLidas = mensagens.filter((m) => !m.lida).length;
+        const pendentes = mensagens.filter((m) => !m.respondida).length;
+        const respondidas = mensagens.filter((m) => m.respondida).length;
+
+        document.getElementById("statTotal").textContent = total;
+        document.getElementById("statNaoLidas").textContent = naoLidas;
+        document.getElementById("statPendentes").textContent = pendentes;
+        document.getElementById("statRespondidas").textContent = respondidas;
+      }
+
+      // Atualizar badges
+      function atualizarBadges() {
+        const naoLidas = mensagens.filter((m) => !m.lida).length;
+
+        ["menuBadge", "headerBadge"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.textContent = naoLidas;
+            el.style.display = naoLidas > 0 ? "inline-flex" : "none";
+          }
+        });
+
+        // Atualizar título
+        if (naoLidas > 0) {
+          document.title = `(${naoLidas}) Mensagens • Painel Administrativo`;
+        } else {
+          document.title = "Mensagens • Painel Administrativo";
+        }
+      }
+
+      // Atualizar lista
+      function atualizarLista() {
+        const container = document.getElementById("listaMensagens");
+
+        let filtradas = mensagens;
+        if (filtroAtual === "nao-lidas") {
+          filtradas = mensagens.filter((m) => !m.lida);
+        } else if (filtroAtual === "pendentes") {
+          filtradas = mensagens.filter((m) => !m.respondida);
+        }
+
+        if (filtradas.length === 0) {
+          container.innerHTML = `
+          <div style="padding: 40px; text-align: center; color: var(--muted);">
+            <p>Nenhuma mensagem</p>
+          </div>
+        `;
+          return;
+        }
+
+        container.innerHTML = filtradas
+          .map((m) => {
+            const data = new Date(m.data_envio);
+            const tempo = formatarTempo(data);
+            const iniciais = m.nome
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .substring(0, 2)
+              .toUpperCase();
+
+            return `
+          <div class="mensagem-item ${!m.lida ? "nao-lida" : ""} ${mensagemSelecionada?.id === m.id ? "active" : ""}" 
+               onclick="selecionarMensagem(${m.id})" style="position: relative;">
+            <div class="mensagem-preview-header">
+              <span class="mensagem-preview-nome">${escapeHtml(m.nome)}</span>
+              <span class="mensagem-preview-data">${tempo}</span>
+            </div>
+            <div class="mensagem-preview-assunto">${escapeHtml(m.assunto)}</div>
+            <div class="mensagem-preview-texto">${escapeHtml(m.mensagem)}</div>
+            <div style="margin-top: 8px;">
+              <span class="badge-${m.prioridade || "media"}">${(m.prioridade || "media").toUpperCase()}</span>
+              ${m.respondida ? '<span style="margin-left: 8px; font-size: 11px; color: var(--success);">✓</span>' : ""}
+            </div>
+          </div>
+        `;
+          })
+          .join("");
+      }
+
+      // Selecionar mensagem
+      function selecionarMensagem(id) {
+        mensagemSelecionada = mensagens.find((m) => m.id === id);
+        if (!mensagemSelecionada) return;
+
+        // Marcar como lida
+        if (!mensagemSelecionada.lida) {
+          mensagemSelecionada.lida = true;
+          salvarMensagens();
+          atualizarTudo();
+        }
+
+        atualizarLista();
+        mostrarDetalhe();
+      }
+
+      // Mostrar detalhe
+      function mostrarDetalhe() {
+        const m = mensagemSelecionada;
+        const container = document.getElementById("mensagemDetalhe");
+        const data = new Date(m.data_envio).toLocaleString("pt-BR");
+
+        let html = `
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--line);">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+              ${m.nome
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .substring(0, 2)
+                .toUpperCase()}
+            </div>
+            <div>
+              <h3 style="margin: 0;">${escapeHtml(m.nome)}</h3>
+              <p style="margin: 4px 0 0 0; color: var(--muted); font-size: 13px;">
+                ${escapeHtml(m.email)} • ${escapeHtml(m.telefone)}
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted);">
+            <span>📅 ${data}</span>
+            <span class="badge-${m.prioridade || "media"}">${(m.prioridade || "media").toUpperCase()}</span>
+            ${m.respondida ? '<span style="color: var(--success);">✓ Respondida</span>' : '<span style="color: var(--warning);">⏳ Pendente</span>'}
+          </div>
+        </div>
+
+        <div style="background: var(--bg); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+          <h4 style="margin: 0 0 12px 0; color: var(--accent); font-size: 14px;">${escapeHtml(m.assunto)}</h4>
+          <p style="margin: 0; line-height: 1.8; color: var(--text);">${escapeHtml(m.mensagem).replace(/\n/g, "<br>")}</p>
+        </div>
+      `;
+
+        if (m.respondida && m.resposta) {
+          html += `
+          <div style="background: rgba(16, 185, 129, 0.05); padding: 20px; border-radius: 12px; border-left: 3px solid var(--success); margin-bottom: 20px;">
+            <h4 style="margin: 0 0 8px 0; color: var(--success); font-size: 14px;">✓ Sua resposta</h4>
+            <p style="margin: 0; color: var(--text);">${escapeHtml(m.resposta).replace(/\n/g, "<br>")}</p>
+            ${m.data_resposta ? `<p style="margin: 8px 0 0 0; font-size: 12px; color: var(--muted);">${new Date(m.data_resposta).toLocaleString("pt-BR")}</p>` : ""}
+          </div>
+        `;
+        } else {
+          html += `
+          <div style="margin-bottom: 20px;">
+            <h4 style="margin-bottom: 12px;">Responder</h4>
+            <textarea id="textoResposta" placeholder="Digite sua resposta..." style="width: 100%; min-height: 100px; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); margin-bottom: 12px; resize: vertical;"></textarea>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button onclick="responder()" class="btn btn-primary">💾 Salvar Resposta</button>
+              <a href="mailto:${encodeURIComponent(m.email)}?subject=Re: ${encodeURIComponent(m.assunto)}" class="btn btn-outline">📧 Email</a>
+              <a href="https://wa.me/${m.telefone.replace(/\D/g, "")}" target="_blank" class="btn btn-green">💬 WhatsApp</button>
+              <button onclick="marcarRespondido()" class="btn btn-outline" style="margin-left: auto;">✓ Já respondi</button>
+            </div>
+          </div>
+        `;
+        }
+
+        html += `
+        <div style="display: flex; gap: 10px; padding-top: 20px; border-top: 1px solid var(--line);">
+          <select onchange="mudarPrioridade(this.value)" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text);">
+            <option value="baixa" ${m.prioridade === "baixa" ? "selected" : ""}>🔵 Baixa</option>
+            <option value="media" ${m.prioridade === "media" ? "selected" : ""}>🟡 Média</option>
+            <option value="alta" ${m.prioridade === "alta" ? "selected" : ""}>🟠 Alta</option>
+            <option value="urgente" ${m.prioridade === "urgente" ? "selected" : ""}>🔴 Urgente</option>
+          </select>
+          <button onclick="excluirMensagem()" class="btn btn-red" style="margin-left: auto;">🗑️ Excluir</button>
+        </div>
+      `;
+
+        container.innerHTML = html;
+      }
+
+      // Ações
+      function responder() {
+        const texto = document.getElementById("textoResposta").value.trim();
+        if (!texto) {
+          alert("Digite uma resposta!");
+          return;
+        }
+
+        mensagemSelecionada.respondida = true;
+        mensagemSelecionada.resposta = texto;
+        mensagemSelecionada.data_resposta = new Date().toISOString();
+
+        salvarMensagens();
+        atualizarTudo();
+        mostrarDetalhe();
+      }
+
+      function marcarRespondido() {
+        mensagemSelecionada.respondida = true;
+        mensagemSelecionada.resposta = "Respondido via WhatsApp/Email externo";
+        mensagemSelecionada.data_resposta = new Date().toISOString();
+
+        salvarMensagens();
+        atualizarTudo();
+        mostrarDetalhe();
+      }
+
+      function mudarPrioridade(nova) {
+        mensagemSelecionada.prioridade = nova;
+        salvarMensagens();
+        atualizarTudo();
+      }
+
+      function excluirMensagem() {
+        if (!confirm("Tem certeza que deseja excluir esta mensagem?")) return;
+
+        mensagens = mensagens.filter((m) => m.id !== mensagemSelecionada.id);
+        mensagemSelecionada = null;
+
+        salvarMensagens();
+        atualizarTudo();
+
+        document.getElementById("mensagemDetalhe").innerHTML = `
+        <div class="mensagem-detalhe-vazio">
+          <span style="font-size: 48px; margin-bottom: 16px;">✉️</span>
+          <p>Mensagem excluída</p>
+        </div>
+      `;
+      }
+
+      function filtrar(tipo, btn) {
+        filtroAtual = tipo;
+
+        document
+          .querySelectorAll(".tab-filtro")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        atualizarLista();
+      }
+
+      // Utilitários
+      function formatarTempo(data) {
+        const agora = new Date();
+        const diff = agora - data;
+        const min = Math.floor(diff / 60000);
+        const horas = Math.floor(diff / 3600000);
+        const dias = Math.floor(diff / 86400000);
+
+        if (min < 1) return "Agora";
+        if (min < 60) return `${min}min`;
+        if (horas < 24) return `${horas}h`;
+        if (dias < 7) return `${dias}d`;
+        return data.toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+        });
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function logout() {
+        sessionStorage.removeItem("adminUser");
+        window.location.href = "index.html";
+      }
+
+      // Verificar login
+      if (!sessionStorage.getItem("adminUser")) {
+        window.location.href = "index.html";
+      }
+
+      // Tema
+      const themeToggle = document.getElementById("themeToggle");
+      const root = document.documentElement;
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      root.setAttribute("data-theme", savedTheme);
+      themeToggle.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+
+      themeToggle.addEventListener("click", () => {
+        const current = root.getAttribute("data-theme");
+        const next = current === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+        themeToggle.textContent = next === "dark" ? "☀️" : "🌙";
+      });
+
+      // Listener para novas mensagens de outras abas
+      window.addEventListener("storage", (e) => {
+        if (e.key === CONFIG.MENSAGENS_KEY) {
+          console.log("🆕 Nova mensagem detectada!");
+          carregarMensagens();
+          alert("📨 Nova mensagem recebida!");
+        }
+      });
+
+      // Iniciar
+      carregarMensagens();
+
+      // Atualizar a cada 3 segundos
+      setInterval(carregarMensagens, 3000);
+    </script>
+  </body>
+</html>

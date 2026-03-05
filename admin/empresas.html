@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Empresas • Painel Administrativo</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <style>
+      .modal-confirmacao {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+      }
+
+      .modal-confirmacao.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-content {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 32px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        transform: scale(0.9);
+        transition: transform 0.3s;
+      }
+
+      .modal-confirmacao.active .modal-content {
+        transform: scale(1);
+      }
+
+      .modal-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+      }
+
+      .modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .modal-text {
+        color: var(--muted);
+        margin-bottom: 24px;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .btn-excluir {
+        background: var(--danger);
+        color: white;
+        border: none;
+      }
+
+      .btn-excluir:hover {
+        background: #dc2626;
+      }
+
+      .status-ativo {
+        color: var(--success);
+      }
+
+      .status-inativo {
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body class="admin-body">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">📍</div>
+        <div>
+          <h1>Guia Chimoio</h1>
+          <span>Painel Admin</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li>
+          <a href="dashboard.html"><span class="icon">📊</span> Dashboard</a>
+        </li>
+        <li>
+          <a href="mensagens.html"><span class="icon">✉️</span> Mensagens</a>
+        </li>
+        <li>
+          <a href="empresas.html" class="active"
+            ><span class="icon">🏢</span> Empresas</a
+          >
+        </li>
+        <li>
+          <a href="nova-empresa.html"
+            ><span class="icon">➕</span> Nova Empresa</a
+          >
+        </li>
+        <li>
+          <a href="pagamentos.html"><span class="icon">💰</span> Pagamentos</a>
+        </li>
+        <li>
+          <a href="estatisticas.html"
+            ><span class="icon">📈</span> Estatísticas</a
+          >
+        </li>
+        <li>
+          <a href="configuracoes.html"
+            ><span class="icon">⚙️</span> Configurações</a
+          >
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">A</div>
+          <div class="user-details">
+            <div class="user-name">Administrador</div>
+            <div class="user-role">Super Admin</div>
+          </div>
+          <button
+            onclick="logout()"
+            style="
+              background: none;
+              border: none;
+              color: var(--muted);
+              cursor: pointer;
+              font-size: 18px;
+            "
+          >
+            🚪
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="admin-header">
+        <div style="display: flex; align-items: center; gap: 16px">
+          <button id="menuToggle" class="btn-icon" style="display: none">
+            ☰
+          </button>
+          <div class="header-search">
+            <input
+              type="search"
+              id="searchEmpresas"
+              placeholder="Buscar empresas..."
+            />
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" id="themeToggle" title="Alternar tema">
+            ☀️
+          </button>
+          <button class="btn-icon" onclick="logout()" title="Sair">🚪</button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div class="page-header">
+          <h2>Gestão de Empresas</h2>
+          <p>Ative, desative, edite ou exclua empresas cadastradas</p>
+        </div>
+
+        <!-- Alertas -->
+        <div id="alertContainer"></div>
+
+        <!-- Filtros -->
+        <div class="filters-bar">
+          <div class="filter-group">
+            <label>Status:</label>
+            <select id="filterStatus">
+              <option value="todos">Todos</option>
+              <option value="ativas">Ativas</option>
+              <option value="inativas">Inativas</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Plano:</label>
+            <select id="filterPlano">
+              <option value="todos">Todos</option>
+              <option value="basico">Básico</option>
+              <option value="pro">Pro</option>
+              <option value="destaque">Destaque</option>
+            </select>
+          </div>
+
+          <a
+            href="nova-empresa.html"
+            class="btn btn-green"
+            style="margin-left: auto"
+          >
+            + Nova Empresa
+          </a>
+        </div>
+
+        <!-- Tabela -->
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Lista de Empresas</h3>
+            <div class="table-actions">
+              <button class="btn btn-outline" onclick="exportarEmpresas()">
+                📥 Exportar
+              </button>
+            </div>
+          </div>
+          <div style="overflow-x: auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Empresa</th>
+                  <th>Categoria</th>
+                  <th>Plano</th>
+                  <th>Contacto</th>
+                  <th>Data Cadastro</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="empresasTable">
+                <!-- Preenchido via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal-confirmacao" id="modalExcluir">
+      <div class="modal-content">
+        <div class="modal-icon">🗑️</div>
+        <div class="modal-title">Excluir Empresa</div>
+        <div class="modal-text">
+          Tem certeza que deseja excluir permanentemente a empresa
+          <strong id="nomeEmpresaExcluir"></strong>? <br /><br />
+          <span style="color: var(--danger)"
+            >⚠️ Esta ação não pode ser desfeita!</span
+          >
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="fecharModal()">
+            Cancelar
+          </button>
+          <button class="btn btn-excluir" onclick="confirmarExclusao()">
+            🗑️ Sim, Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript INLINE -->
+    <script>
+      // ==========================================
+      // CONFIGURAÇÃO
+      // ==========================================
+      const CONFIG = {
+        EMPRESAS_KEY: "guia_chimoio_empresas_v2",
+      };
+
+      let empresas = [];
+      let empresaParaExcluir = null;
+      let filtros = {
+        status: "todos",
+        plano: "todos",
+        busca: "",
+      };
+
+      // ==========================================
+      // CARREGAR EMPRESAS
+      // ==========================================
+      function carregarEmpresas() {
+        try {
+          const data = localStorage.getItem(CONFIG.EMPRESAS_KEY);
+          if (data) {
+            empresas = JSON.parse(data);
+          } else {
+            // Criar empresas padrão se não existir
+            empresas = [
+              {
+                id: 1,
+                nome: "Farmácia Popular Chimoio",
+                categoria: "Farmácias",
+                bairro: "Centro",
+                contacto: "+258 84 123 4567",
+                whatsapp: "258841234567",
+                horario: "08:00 - 20:00",
+                destaque: true,
+                plano: "destaque",
+                ativo: true,
+                data_cadastro: "2024-01-15",
+              },
+              {
+                id: 2,
+                nome: "Restaurante Sabores da Terra",
+                categoria: "Restaurantes",
+                bairro: "Vila Nova",
+                contacto: "+258 86 234 5678",
+                whatsapp: "258862345678",
+                horario: "09:00 - 22:00",
+                destaque: true,
+                plano: "destaque",
+                ativo: true,
+                data_cadastro: "2024-01-14",
+              },
+            ];
+            salvarEmpresas();
+          }
+        } catch (error) {
+          console.error("Erro ao carregar:", error);
+          empresas = [];
+        }
+      }
+
+      function salvarEmpresas() {
+        localStorage.setItem(CONFIG.EMPRESAS_KEY, JSON.stringify(empresas));
+        // Disparar evento para atualizar outras páginas
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: CONFIG.EMPRESAS_KEY,
+          }),
+        );
+      }
+
+      // ==========================================
+      // RENDERIZAR TABELA
+      // ==========================================
+      function renderTabela() {
+        const tbody = document.getElementById("empresasTable");
+
+        // Aplicar filtros
+        let filtradas = empresas;
+
+        if (filtros.status === "ativas") {
+          filtradas = filtradas.filter((e) => e.ativo !== false);
+        } else if (filtros.status === "inativas") {
+          filtradas = filtradas.filter((e) => e.ativo === false);
+        }
+
+        if (filtros.plano !== "todos") {
+          filtradas = filtradas.filter((e) => e.plano === filtros.plano);
+        }
+
+        if (filtros.busca) {
+          const busca = filtros.busca.toLowerCase();
+          filtradas = filtradas.filter(
+            (e) =>
+              e.nome.toLowerCase().includes(busca) ||
+              e.categoria.toLowerCase().includes(busca) ||
+              e.bairro.toLowerCase().includes(busca),
+          );
+        }
+
+        if (filtradas.length === 0) {
+          tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 40px; color: var(--muted);">
+              Nenhuma empresa encontrada
+            </td>
+          </tr>
+        `;
+          return;
+        }
+
+        tbody.innerHTML = filtradas
+          .map((e) => {
+            const data = e.data_cadastro
+              ? new Date(e.data_cadastro).toLocaleDateString("pt-BR")
+              : "-";
+            const statusClass =
+              e.ativo !== false ? "status-ativo" : "status-inativo";
+            const statusText = e.ativo !== false ? "Ativa" : "Inativa";
+
+            const planoClasses = {
+              basico: "plano basico",
+              pro: "plano pro",
+              destaque: "plano destaque",
+            };
+
+            return `
+          <tr>
+            <td>#${e.id}</td>
+            <td>
+              <div style="font-weight: 600;">${e.nome}</div>
+              <div style="font-size: 12px; color: var(--muted);">${e.bairro}</div>
+            </td>
+            <td>${e.categoria}</td>
+            <td><span class="${planoClasses[e.plano] || "plano basico"}">${e.plano.toUpperCase()}</span></td>
+            <td>${e.contacto}</td>
+            <td>${data}</td>
+            <td class="${statusClass}">${statusText}</td>
+            <td>
+              <button class="btn-action" onclick="toggleStatus(${e.id})" title="${e.ativo !== false ? "Desativar" : "Ativar"}">
+                ${e.ativo !== false ? "🔴" : "🟢"}
+              </button>
+              <a href="editar-empresa.html?id=${e.id}" class="btn-action" title="Editar">✏️</a>
+              <a href="../empresa.html?id=${e.id}" target="_blank" class="btn-action" title="Ver no site">👁️</a>
+              <button class="btn-action delete" onclick="abrirModalExcluir(${e.id})" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+        `;
+          })
+          .join("");
+      }
+
+      // ==========================================
+      // AÇÕES
+      // ==========================================
+
+      function toggleStatus(id) {
+        const empresa = empresas.find((e) => e.id === id);
+        if (empresa) {
+          empresa.ativo = empresa.ativo === false ? true : false;
+          salvarEmpresas();
+          renderTabela();
+          mostrarAlerta(
+            `Empresa ${empresa.ativo ? "ativada" : "desativada"} com sucesso!`,
+            "success",
+          );
+        }
+      }
+
+      function abrirModalExcluir(id) {
+        empresaParaExcluir = empresas.find((e) => e.id === id);
+        if (empresaParaExcluir) {
+          document.getElementById("nomeEmpresaExcluir").textContent =
+            empresaParaExcluir.nome;
+          document.getElementById("modalExcluir").classList.add("active");
+        }
+      }
+
+      function fecharModal() {
+        document.getElementById("modalExcluir").classList.remove("active");
+        empresaParaExcluir = null;
+      }
+
+      function confirmarExclusao() {
+        if (!empresaParaExcluir) return;
+
+        // Remover empresa permanentemente
+        empresas = empresas.filter((e) => e.id !== empresaParaExcluir.id);
+        salvarEmpresas();
+
+        fecharModal();
+        renderTabela();
+        mostrarAlerta("Empresa excluída permanentemente!", "success");
+      }
+
+      function exportarEmpresas() {
+        const dataStr = JSON.stringify(empresas, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `empresas-guia-chimoio-${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        mostrarAlerta("Empresas exportadas com sucesso!", "success");
+      }
+
+      // ==========================================
+      // ALERTAS
+      // ==========================================
+
+      function mostrarAlerta(mensagem, tipo = "success") {
+        const container = document.getElementById("alertContainer");
+        const alertDiv = document.createElement("div");
+        alertDiv.style.cssText = `
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: ${tipo === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)"};
+        color: ${tipo === "success" ? "#10b981" : "#ef4444"};
+        border: 1px solid ${tipo === "success" ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"};
+      `;
+        alertDiv.innerHTML = (tipo === "success" ? "✅ " : "❌ ") + mensagem;
+
+        container.innerHTML = "";
+        container.appendChild(alertDiv);
+
+        setTimeout(() => alertDiv.remove(), 5000);
+      }
+
+      // ==========================================
+      // FILTROS
+      // ==========================================
+
+      function setupFiltros() {
+        document
+          .getElementById("filterStatus")
+          .addEventListener("change", (e) => {
+            filtros.status = e.target.value;
+            renderTabela();
+          });
+
+        document
+          .getElementById("filterPlano")
+          .addEventListener("change", (e) => {
+            filtros.plano = e.target.value;
+            renderTabela();
+          });
+
+        document
+          .getElementById("searchEmpresas")
+          .addEventListener("input", (e) => {
+            filtros.busca = e.target.value;
+            renderTabela();
+          });
+      }
+
+      // ==========================================
+      // INICIALIZAÇÃO
+      // ==========================================
+
+      function init() {
+        // Verificar login
+        if (!sessionStorage.getItem("adminUser")) {
+          window.location.href = "index.html";
+          return;
+        }
+
+        carregarEmpresas();
+        renderTabela();
+        setupFiltros();
+
+        // Atualizar quando houver mudanças em outras abas
+        window.addEventListener("storage", (e) => {
+          if (e.key === CONFIG.EMPRESAS_KEY) {
+            carregarEmpresas();
+            renderTabela();
+            mostrarAlerta("Lista de empresas atualizada!", "success");
+          }
+        });
+
+        // Tema
+        const themeToggle = document.getElementById("themeToggle");
+        const root = document.documentElement;
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        root.setAttribute("data-theme", savedTheme);
+        themeToggle.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+
+        themeToggle.addEventListener("click", () => {
+          const current = root.getAttribute("data-theme");
+          const next = current === "dark" ? "light" : "dark";
+          root.setAttribute("data-theme", next);
+          localStorage.setItem("theme", next);
+          themeToggle.textContent = next === "dark" ? "☀️" : "🌙";
+        });
+      }
+
+      function logout() {
+        sessionStorage.removeItem("adminUser");
+        window.location.href = "index.html";
+      }
+
+      // Fechar modal ao clicar fora
+      document.getElementById("modalExcluir").addEventListener("click", (e) => {
+        if (e.target.id === "modalExcluir") {
+          fecharModal();
+        }
+      });
+
+      // Iniciar
+      init();
+    </script>
+  </body>
+</html>

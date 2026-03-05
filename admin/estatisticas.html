@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Estatísticas • Painel Administrativo</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+  </head>
+  <body class="admin-body">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">📍</div>
+        <div>
+          <h1>Guia Chimoio</h1>
+          <span>Painel Admin</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li>
+          <a href="dashboard.html"><span class="icon">📊</span> Dashboard</a>
+        </li>
+        <li>
+          <a href="empresas.html"><span class="icon">🏢</span> Empresas</a>
+        </li>
+        <li>
+          <a href="pagamentos.html"><span class="icon">💰</span> Pagamentos</a>
+        </li>
+        <li>
+          <a href="estatisticas.html" class="active"
+            ><span class="icon">📈</span> Estatísticas</a
+          >
+        </li>
+        <li>
+          <a href="configuracoes.html"
+            ><span class="icon">⚙️</span> Configurações</a
+          >
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">A</div>
+          <div class="user-details">
+            <div class="user-name">Administrador</div>
+            <div class="user-role">Super Admin</div>
+          </div>
+          <button
+            onclick="logout()"
+            style="
+              background: none;
+              border: none;
+              color: var(--muted);
+              cursor: pointer;
+              font-size: 18px;
+            "
+          >
+            🚪
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="admin-header">
+        <div style="display: flex; align-items: center; gap: 16px">
+          <button id="menuToggle" class="btn-icon" style="display: none">
+            ☰
+          </button>
+          <div class="header-search">
+            <input type="search" placeholder="Pesquisar..." />
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" id="themeToggle" title="Alternar tema">
+            ☀️
+          </button>
+          <button class="btn-icon" onclick="logout()" title="Sair">🚪</button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div class="page-header">
+          <h2>Análise de Planos</h2>
+          <p>
+            Estatísticas detalhadas sobre adesão e performance de cada plano
+          </p>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>📊 Distribuição de Planos</h3>
+            <div id="chartPlanos">
+              <!-- Gráfico de barras via JS -->
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h3>💵 Evolução da Receita</h3>
+            <div id="chartReceitas">
+              <!-- Gráfico de linha via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela Comparativa -->
+        <div class="table-card" style="margin-top: 20px">
+          <div class="table-header">
+            <h3>📋 Comparativo de Planos</h3>
+            <button class="btn btn-outline">📥 Exportar relatório</button>
+          </div>
+          <div style="overflow-x: auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Plano</th>
+                  <th>Total</th>
+                  <th>Ativas</th>
+                  <th>Inativas</th>
+                  <th>Receita Mensal</th>
+                  <th>Taxa de Adesão</th>
+                </tr>
+              </thead>
+              <tbody id="tablePlanos">
+                <!-- Preenchido via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="card" style="margin-top: 20px">
+          <h3 style="margin-bottom: 16px">💡 Insights</h3>
+          <div style="display: grid; gap: 12px">
+            <div
+              style="
+                padding: 16px;
+                background: var(--bg);
+                border-radius: 10px;
+                border-left: 4px solid var(--success);
+              "
+            >
+              <strong style="color: var(--success)">Plano mais popular:</strong>
+              <span id="planoMaisPopular">Carregando...</span>
+            </div>
+            <div
+              style="
+                padding: 16px;
+                background: var(--bg);
+                border-radius: 10px;
+                border-left: 4px solid var(--accent);
+              "
+            >
+              <strong style="color: var(--accent)"
+                >Maior fonte de receita:</strong
+              >
+              <span id="maiorReceita">Carregando...</span>
+            </div>
+            <div
+              style="
+                padding: 16px;
+                background: var(--bg);
+                border-radius: 10px;
+                border-left: 4px solid var(--warning);
+              "
+            >
+              <strong style="color: var(--warning)">Oportunidade:</strong>
+              <span id="oportunidade">Carregando...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../js/admin.js"></script>
+    <script src="../js/main.js"></script>
+  </body>
+</html>

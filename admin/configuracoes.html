@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Configurações • Painel Administrativo</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <style>
+      /* Estilos adicionais para o modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 32px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .modal-title {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      .btn-full {
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 20px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        transform: translateX(150%);
+        transition: transform 0.3s ease;
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification.success {
+        background: #10b981;
+      }
+
+      .notification.error {
+        background: #ef4444;
+      }
+
+      .usuarios-lista {
+        margin-bottom: 16px;
+      }
+
+      .usuario-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        background: var(--bg);
+        border-radius: 10px;
+        margin-bottom: 8px;
+      }
+
+      .usuario-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .usuario-acoes {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-icon-small {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: none;
+        background: var(--line);
+        color: var(--text);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn-icon-small:hover {
+        background: var(--danger);
+        color: white;
+      }
+    </style>
+  </head>
+  <body class="admin-body">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">📍</div>
+        <div>
+          <h1>Guia Chimoio</h1>
+          <span>Painel Admin</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li>
+          <a href="dashboard.html"><span class="icon">📊</span> Dashboard</a>
+        </li>
+        <li>
+          <a href="empresas.html"><span class="icon">🏢</span> Empresas</a>
+        </li>
+        <li>
+          <a href="pagamentos.html"><span class="icon">💰</span> Pagamentos</a>
+        </li>
+        <li>
+          <a href="estatisticas.html"
+            ><span class="icon">📈</span> Estatísticas</a
+          >
+        </li>
+        <li>
+          <a href="configuracoes.html" class="active"
+            ><span class="icon">⚙️</span> Configurações</a
+          >
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">A</div>
+          <div class="user-details">
+            <div class="user-name">Administrador</div>
+            <div class="user-role">Super Admin</div>
+          </div>
+          <button
+            onclick="logout()"
+            style="
+              background: none;
+              border: none;
+              color: var(--muted);
+              cursor: pointer;
+              font-size: 18px;
+            "
+          >
+            🚪
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="admin-header">
+        <div style="display: flex; align-items: center; gap: 16px">
+          <button id="menuToggle" class="btn-icon" style="display: none">
+            ☰
+          </button>
+          <h2 style="font-size: 18px; color: var(--text)">
+            Configurações do Sistema
+          </h2>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" id="themeToggle" title="Alternar tema">
+            ☀️
+          </button>
+          <button class="btn-icon" onclick="logout()" title="Sair">🚪</button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div class="page-header">
+          <h2>Configurações</h2>
+          <p>Personalize o sistema e gerencie usuários administrativos</p>
+        </div>
+
+        <div style="display: grid; gap: 20px; max-width: 800px">
+          <!-- Configurações Gerais -->
+          <div class="card">
+            <h3 style="margin-bottom: 20px">🏢 Informações do Guia</h3>
+            <div class="form-group" style="margin-bottom: 16px">
+              <label>Nome do Guia</label>
+              <input
+                type="text"
+                id="nomeGuia"
+                value="Guia de Negócios de Chimoio"
+                style="
+                  width: 100%;
+                  padding: 10px;
+                  border-radius: 8px;
+                  border: 1px solid var(--line);
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+            <div class="form-group" style="margin-bottom: 16px">
+              <label>WhatsApp Principal</label>
+              <input
+                type="text"
+                id="whatsappGuia"
+                value="25884XXXXXXX"
+                style="
+                  width: 100%;
+                  padding: 10px;
+                  border-radius: 8px;
+                  border: 1px solid var(--line);
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+            <div class="form-group">
+              <label>Email de Contato</label>
+              <input
+                type="email"
+                id="emailGuia"
+                value="contato@guiachimoio.co.mz"
+                style="
+                  width: 100%;
+                  padding: 10px;
+                  border-radius: 8px;
+                  border: 1px solid var(--line);
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+            <button
+              class="btn btn-primary"
+              style="margin-top: 16px"
+              onclick="salvarInformacoes()"
+            >
+              Salvar alterações
+            </button>
+          </div>
+
+          <!-- Preços dos Planos -->
+          <div class="card">
+            <h3 style="margin-bottom: 20px">💰 Preços dos Planos</h3>
+            <div style="display: grid; gap: 16px">
+              <div
+                style="
+                  padding: 16px;
+                  background: var(--bg);
+                  border-radius: 10px;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <span class="plano basico">BÁSICO</span>
+                  <span style="font-weight: 700">Grátis</span>
+                </div>
+                <p style="font-size: 13px; color: var(--muted)">
+                  Plano gratuito com recursos limitados
+                </p>
+              </div>
+
+              <div
+                style="
+                  padding: 16px;
+                  background: var(--bg);
+                  border-radius: 10px;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <span class="plano pro">PRO</span>
+                  <div style="display: flex; align-items: center; gap: 8px">
+                    <input
+                      type="number"
+                      id="precoPro"
+                      value="500"
+                      style="
+                        width: 100px;
+                        padding: 6px;
+                        border-radius: 6px;
+                        border: 1px solid var(--line);
+                        text-align: right;
+                      "
+                    />
+                    MT/mês
+                  </div>
+                </div>
+                <p style="font-size: 13px; color: var(--muted)">
+                  Inclui fotos, WhatsApp e descrição detalhada
+                </p>
+              </div>
+
+              <div
+                style="
+                  padding: 16px;
+                  background: var(--bg);
+                  border-radius: 10px;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <span class="plano destaque">DESTAQUE</span>
+                  <div style="display: flex; align-items: center; gap: 8px">
+                    <input
+                      type="number"
+                      id="precoDestaque"
+                      value="800"
+                      style="
+                        width: 100px;
+                        padding: 6px;
+                        border-radius: 6px;
+                        border: 1px solid var(--line);
+                        text-align: right;
+                      "
+                    />
+                    MT/mês
+                  </div>
+                </div>
+                <p style="font-size: 13px; color: var(--muted)">
+                  Prioridade nas buscas e posição privilegiada
+                </p>
+              </div>
+
+              <div
+                style="
+                  padding: 16px;
+                  background: var(--bg);
+                  border-radius: 10px;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <span class="plano vip">VIP</span>
+                  <div style="display: flex; align-items: center; gap: 8px">
+                    <input
+                      type="number"
+                      id="precoVip"
+                      value="1500"
+                      style="
+                        width: 100px;
+                        padding: 6px;
+                        border-radius: 6px;
+                        border: 1px solid var(--line);
+                        text-align: right;
+                      "
+                    />
+                    MT/mês
+                  </div>
+                </div>
+                <p style="font-size: 13px; color: var(--muted)">
+                  Página profissional completa com SEO e analytics
+                </p>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              style="margin-top: 16px"
+              onclick="salvarPrecos()"
+            >
+              Atualizar preços
+            </button>
+          </div>
+
+          <!-- Usuários Admin -->
+          <div class="card">
+            <h3 style="margin-bottom: 20px">👤 Usuários Administrativos</h3>
+            <div id="listaUsuarios" class="usuarios-lista">
+              <!-- Preenchido via JavaScript -->
+            </div>
+            <button class="btn btn-outline" onclick="abrirModalUsuario()">
+              + Adicionar usuário
+            </button>
+          </div>
+
+          <!-- Backup -->
+          <div class="card">
+            <h3 style="margin-bottom: 20px">💾 Backup e Dados</h3>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap">
+              <button class="btn btn-outline" onclick="exportarTudo()">
+                📥 Exportar todos os dados
+              </button>
+              <button
+                class="btn btn-outline"
+                onclick="document.getElementById('inputImportar').click()"
+              >
+                📤 Importar dados
+              </button>
+              <input
+                type="file"
+                id="inputImportar"
+                style="display: none"
+                accept=".json"
+                onchange="importarDados(this)"
+              />
+              <button class="btn btn-red" onclick="limparCache()">
+                🗑️ Limpar cache
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal Adicionar Usuário -->
+    <div id="modalUsuario" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">➕ Adicionar Usuário</h3>
+          <button class="modal-close" onclick="fecharModalUsuario()">×</button>
+        </div>
+
+        <div class="form-group">
+          <label>Nome completo</label>
+          <input
+            type="text"
+            id="novoUsuarioNome"
+            placeholder="Ex: João Silva"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            id="novoUsuarioEmail"
+            placeholder="Ex: joao@email.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Senha</label>
+          <input
+            type="password"
+            id="novoUsuarioSenha"
+            placeholder="Mínimo 6 caracteres"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de usuário</label>
+          <select id="novoUsuarioTipo">
+            <option value="admin">Administrador</option>
+            <option value="editor">Editor</option>
+            <option value="visualizador">Visualizador</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary btn-full" onclick="salvarUsuario()">
+          💾 Criar usuário
+        </button>
+      </div>
+    </div>
+
+    <!-- Notificação -->
+    <div id="notificacao" class="notification"></div>
+    <script>
+      // ==========================================
+      // CONFIGURAÇÃO
+      // ==========================================
+      const CONFIG = {
+        CHAVE_CONFIG: "guia_chimoio_config",
+        CHAVE_USUARIOS: "guia_chimoio_usuarios",
+        CHAVE_EMPRESAS: "guia_chimoio_empresas_v2",
+      };
+
+      // ==========================================
+      // ESTADO
+      // ==========================================
+      let config = {
+        nome: "Guia de Negócios de Chimoio",
+        whatsapp: "25884XXXXXXX",
+        email: "contato@guiachimoio.co.mz",
+        precos: {
+          pro: 500,
+          destaque: 800,
+          vip: 1500,
+        },
+      };
+
+      let usuarios = [
+        {
+          id: 1,
+          nome: "Administrador",
+          email: "admin@guiachimoio.co.mz",
+          tipo: "superadmin",
+          ativo: true,
+        },
+      ];
+
+      // ==========================================
+      // INICIALIZAÇÃO
+      // ==========================================
+      function init() {
+        // Verificar login
+        if (!sessionStorage.getItem("adminUser")) {
+          window.location.href = "index.html";
+          return;
+        }
+
+        carregarConfig();
+        carregarUsuarios();
+        renderizarUsuarios();
+        configurarTema();
+      }
+
+      // ==========================================
+      // CARREGAR DADOS
+      // ==========================================
+      function carregarConfig() {
+        const salvo = localStorage.getItem(CONFIG.CHAVE_CONFIG);
+        if (salvo) {
+          config = JSON.parse(salvo);
+
+          // Preencher campos
+          document.getElementById("nomeGuia").value = config.nome || "";
+          document.getElementById("whatsappGuia").value = config.whatsapp || "";
+          document.getElementById("emailGuia").value = config.email || "";
+
+          if (config.precos) {
+            document.getElementById("precoPro").value =
+              config.precos.pro || 500;
+            document.getElementById("precoDestaque").value =
+              config.precos.destaque || 800;
+            document.getElementById("precoVip").value =
+              config.precos.vip || 1500;
+          }
+        }
+      }
+
+      function carregarUsuarios() {
+        const salvo = localStorage.getItem(CONFIG.CHAVE_USUARIOS);
+        if (salvo) {
+          usuarios = JSON.parse(salvo);
+        }
+      }
+
+      // ==========================================
+      // SALVAR INFORMAÇÕES
+      // ==========================================
+      function salvarInformacoes() {
+        config.nome = document.getElementById("nomeGuia").value.trim();
+        config.whatsapp = document.getElementById("whatsappGuia").value.trim();
+        config.email = document.getElementById("emailGuia").value.trim();
+
+        localStorage.setItem(CONFIG.CHAVE_CONFIG, JSON.stringify(config));
+        mostrarNotificacao("✅ Informações salvas com sucesso!", "success");
+      }
+
+      function salvarPrecos() {
+        config.precos = {
+          pro: parseInt(document.getElementById("precoPro").value) || 500,
+          destaque:
+            parseInt(document.getElementById("precoDestaque").value) || 800,
+          vip: parseInt(document.getElementById("precoVip").value) || 1500,
+        };
+
+        localStorage.setItem(CONFIG.CHAVE_CONFIG, JSON.stringify(config));
+        mostrarNotificacao("✅ Preços atualizados com sucesso!", "success");
+      }
+
+      // ==========================================
+      // USUÁRIOS
+      // ==========================================
+      function renderizarUsuarios() {
+        const container = document.getElementById("listaUsuarios");
+
+        if (usuarios.length === 0) {
+          container.innerHTML =
+            "<p style='color: var(--muted);'>Nenhum usuário cadastrado.</p>";
+          return;
+        }
+
+        container.innerHTML = usuarios
+          .map(
+            (u, index) => `
+          <div class="usuario-item">
+            <div class="usuario-info">
+              <div class="user-avatar" style="width: 40px; height: 40px">
+                ${u.nome.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style="font-weight: 600">${u.nome}</div>
+                <div style="font-size: 13px; color: var(--muted)">
+                  ${u.email} • ${u.tipo}
+                </div>
+              </div>
+            </div>
+            <div class="usuario-acoes">
+              ${
+                u.tipo !== "superadmin"
+                  ? `
+                <button class="btn-icon-small" onclick="removerUsuario(${index})" title="Remover">
+                  🗑️
+                </button>
+              `
+                  : '<span style="font-size: 12px; color: var(--success);">Super Admin</span>'
+              }
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+      }
+
+      function abrirModalUsuario() {
+        document.getElementById("modalUsuario").classList.add("active");
+        document.getElementById("novoUsuarioNome").focus();
+      }
+
+      function fecharModalUsuario() {
+        document.getElementById("modalUsuario").classList.remove("active");
+        // Limpar campos
+        document.getElementById("novoUsuarioNome").value = "";
+        document.getElementById("novoUsuarioEmail").value = "";
+        document.getElementById("novoUsuarioSenha").value = "";
+        document.getElementById("novoUsuarioTipo").value = "admin";
+      }
+
+      function salvarUsuario() {
+        const nome = document.getElementById("novoUsuarioNome").value.trim();
+        const email = document.getElementById("novoUsuarioEmail").value.trim();
+        const senha = document.getElementById("novoUsuarioSenha").value;
+        const tipo = document.getElementById("novoUsuarioTipo").value;
+
+        // Validações
+        if (!nome || !email || !senha) {
+          mostrarNotificacao("❌ Preencha todos os campos!", "error");
+          return;
+        }
+
+        if (senha.length < 6) {
+          mostrarNotificacao(
+            "❌ A senha deve ter no mínimo 6 caracteres!",
+            "error",
+          );
+          return;
+        }
+
+        if (usuarios.find((u) => u.email === email)) {
+          mostrarNotificacao("❌ Este email já está cadastrado!", "error");
+          return;
+        }
+
+        // Criar novo usuário
+        const novoUsuario = {
+          id: Date.now(),
+          nome: nome,
+          email: email,
+          senha: senha, // Em produção, deve ser criptografada!
+          tipo: tipo,
+          ativo: true,
+          criado_em: new Date().toISOString(),
+        };
+
+        usuarios.push(novoUsuario);
+        localStorage.setItem(CONFIG.CHAVE_USUARIOS, JSON.stringify(usuarios));
+
+        renderizarUsuarios();
+        fecharModalUsuario();
+        mostrarNotificacao("✅ Usuário criado com sucesso!", "success");
+      }
+
+      function removerUsuario(index) {
+        if (!confirm("Tem certeza que deseja remover este usuário?")) {
+          return;
+        }
+
+        usuarios.splice(index, 1);
+        localStorage.setItem(CONFIG.CHAVE_USUARIOS, JSON.stringify(usuarios));
+        renderizarUsuarios();
+        mostrarNotificacao("✅ Usuário removido!", "success");
+      }
+
+      // ==========================================
+      // BACKUP E IMPORTAÇÃO
+      // ==========================================
+      function exportarTudo() {
+        const empresas = JSON.parse(
+          localStorage.getItem(CONFIG.CHAVE_EMPRESAS) || "[]",
+        );
+
+        const data = {
+          config: config,
+          usuarios: usuarios,
+          empresas: empresas,
+          exportado_em: new Date().toISOString(),
+          versao: "1.0",
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `backup-guia-chimoio-${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        mostrarNotificacao("✅ Backup exportado com sucesso!", "success");
+      }
+
+      function importarDados(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = JSON.parse(e.target.result);
+
+            if (
+              confirm(
+                `Importar backup de ${data.exportado_em}?\n\nIsso substituirá todos os dados atuais!`,
+              )
+            ) {
+              if (data.config) {
+                config = data.config;
+                localStorage.setItem(
+                  CONFIG.CHAVE_CONFIG,
+                  JSON.stringify(config),
+                );
+              }
+              if (data.usuarios) {
+                usuarios = data.usuarios;
+                localStorage.setItem(
+                  CONFIG.CHAVE_USUARIOS,
+                  JSON.stringify(usuarios),
+                );
+              }
+              if (data.empresas) {
+                localStorage.setItem(
+                  CONFIG.CHAVE_EMPRESAS,
+                  JSON.stringify(data.empresas),
+                );
+              }
+
+              carregarConfig();
+              renderizarUsuarios();
+              mostrarNotificacao("✅ Dados importados com sucesso!", "success");
+            }
+          } catch (erro) {
+            mostrarNotificacao("❌ Erro ao importar arquivo!", "error");
+            console.error(erro);
+          }
+        };
+        reader.readAsText(file);
+        input.value = ""; // Reset input
+      }
+
+      function limparCache() {
+        if (
+          !confirm(
+            "⚠️ ATENÇÃO!\n\nIsso removerá TODOS os dados do sistema (empresas, usuários, configurações).\n\nDeseja continuar?",
+          )
+        ) {
+          return;
+        }
+
+        localStorage.removeItem(CONFIG.CHAVE_CONFIG);
+        localStorage.removeItem(CONFIG.CHAVE_USUARIOS);
+        localStorage.removeItem(CONFIG.CHAVE_EMPRESAS);
+
+        mostrarNotificacao("🗑️ Cache limpo! Recarregando...", "success");
+
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      }
+
+      // ==========================================
+      // UTILITÁRIOS
+      // ==========================================
+      function mostrarNotificacao(mensagem, tipo) {
+        const notif = document.getElementById("notificacao");
+        notif.textContent = mensagem;
+        notif.className = `notification ${tipo}`;
+        notif.classList.add("show");
+
+        setTimeout(() => {
+          notif.classList.remove("show");
+        }, 3000);
+      }
+
+      function configurarTema() {
+        const themeToggle = document.getElementById("themeToggle");
+        const root = document.documentElement;
+        const savedTheme = localStorage.getItem("theme") || "dark";
+
+        root.setAttribute("data-theme", savedTheme);
+        themeToggle.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+
+        themeToggle.addEventListener("click", () => {
+          const current = root.getAttribute("data-theme");
+          const next = current === "dark" ? "light" : "dark";
+          root.setAttribute("data-theme", next);
+          localStorage.setItem("theme", next);
+          themeToggle.textContent = next === "dark" ? "☀️" : "🌙";
+        });
+      }
+
+      function logout() {
+        sessionStorage.removeItem("adminUser");
+        window.location.href = "index.html";
+      }
+
+      // Fechar modal ao clicar fora
+      document.getElementById("modalUsuario").addEventListener("click", (e) => {
+        if (e.target.id === "modalUsuario") {
+          fecharModalUsuario();
+        }
+      });
+
+      // Iniciar
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+      } else {
+        init();
+      }
+    </script>
+  </body>
+</html>

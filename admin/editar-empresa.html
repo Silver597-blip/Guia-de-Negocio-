@@ -1,0 +1,1677 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Editar Empresa • Painel Administrativo</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <style>
+      .form-section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+
+      .form-section h3 {
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+        font-size: 16px;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .form-section.locked {
+        opacity: 0.6;
+        position: relative;
+      }
+
+      .form-section.locked::after {
+        content: "🔒 Recurso indisponível neste plano";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--card);
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid var(--danger);
+        color: var(--danger);
+        font-weight: 600;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+      }
+
+      .plano-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+
+      .plano-badge.basico {
+        background: rgba(107, 114, 128, 0.1);
+        color: #6b7280;
+        border: 1px solid rgba(107, 114, 128, 0.3);
+      }
+
+      .plano-badge.pro {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+      }
+
+      .plano-badge.vip {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group label {
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      .form-group label .required {
+        color: var(--danger);
+        margin-left: 4px;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+        transition: border-color 0.2s;
+      }
+
+      .form-group input:disabled,
+      .form-group select:disabled,
+      .form-group textarea:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+
+      .form-group small {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: var(--bg);
+        border-radius: 10px;
+        border: 1px solid var(--line);
+      }
+
+      .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--accent);
+      }
+
+      .checkbox-group label {
+        margin: 0;
+        cursor: pointer;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--line);
+      }
+
+      .alert {
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .alert-error {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      /* SISTEMA DE UPLOAD BASE64 */
+      .upload-area {
+        border: 2px dashed var(--line);
+        border-radius: 12px;
+        padding: 32px;
+        text-align: center;
+        background: var(--bg);
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+      }
+
+      .upload-area:hover {
+        border-color: var(--accent);
+        background: rgba(59, 130, 246, 0.05);
+      }
+
+      .upload-area.dragover {
+        border-color: var(--accent);
+        background: rgba(59, 130, 246, 0.1);
+      }
+
+      .upload-area input[type="file"] {
+        display: none;
+      }
+
+      .upload-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+      }
+
+      .upload-text {
+        color: var(--text);
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+
+      .upload-hint {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .imagens-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .imagem-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid var(--line);
+        background: var(--bg);
+      }
+
+      .imagem-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .imagem-item .remove-btn {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        transition: transform 0.2s;
+      }
+
+      .imagem-item .remove-btn:hover {
+        transform: scale(1.1);
+      }
+
+      .imagem-item .imagem-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-size: 10px;
+        padding: 4px;
+        text-align: center;
+      }
+
+      .banner-preview-container {
+        margin-top: 12px;
+        position: relative;
+      }
+
+      .banner-preview-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+      }
+
+      .limite-aviso {
+        color: var(--danger);
+        font-size: 13px;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .limite-ok {
+        color: #10b981;
+        font-size: 13px;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .tag-input {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        min-height: 48px;
+      }
+
+      .tag-input input {
+        flex: 1;
+        min-width: 120px;
+        border: none;
+        background: transparent;
+        padding: 4px;
+        color: var(--text);
+      }
+
+      .tag {
+        background: var(--accent);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .tag button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .recurso-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 8px;
+      }
+
+      .recurso-badge.pro {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+      }
+
+      .recurso-badge.vip {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+    </style>
+  </head>
+  <body class="admin-body">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">📍</div>
+        <div>
+          <h1>Guia Chimoio</h1>
+          <span>Painel Admin</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li>
+          <a href="dashboard.html"><span class="icon">📊</span> Dashboard</a>
+        </li>
+        <li>
+          <a href="mensagens.html"><span class="icon">✉️</span> Mensagens</a>
+        </li>
+        <li>
+          <a href="empresas.html" class="active"
+            ><span class="icon">🏢</span> Empresas</a
+          >
+        </li>
+        <li>
+          <a href="nova-empresa.html"
+            ><span class="icon">➕</span> Nova Empresa</a
+          >
+        </li>
+        <li>
+          <a href="pagamentos.html"><span class="icon">💰</span> Pagamentos</a>
+        </li>
+        <li>
+          <a href="estatisticas.html"
+            ><span class="icon">📈</span> Estatísticas</a
+          >
+        </li>
+        <li>
+          <a href="configuracoes.html"
+            ><span class="icon">⚙️</span> Configurações</a
+          >
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">A</div>
+          <div class="user-details">
+            <div class="user-name">Administrador</div>
+            <div class="user-role">Super Admin</div>
+          </div>
+          <button
+            onclick="logout()"
+            style="
+              background: none;
+              border: none;
+              color: var(--muted);
+              cursor: pointer;
+              font-size: 18px;
+            "
+          >
+            🚪
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="admin-header">
+        <div>
+          <h2 style="font-size: 20px; color: var(--text)">Editar Empresa</h2>
+          <p style="font-size: 13px; color: var(--muted)">
+            Modifique os dados da empresa
+          </p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-icon" id="themeToggle" title="Alternar tema">
+            ☀️
+          </button>
+          <button class="btn-icon" onclick="logout()" title="Sair">🚪</button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- Alertas -->
+        <div id="alertContainer"></div>
+
+        <!-- Badge do Plano -->
+        <div id="planoBadge" class="plano-badge basico">🆓 Plano Básico</div>
+
+        <!-- Formulário -->
+        <form id="formEditarEmpresa">
+          <!-- Seção: Informações Básicas -->
+          <div class="form-section">
+            <h3>📋 Informações Básicas</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nome da Empresa <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="nome"
+                  name="nome"
+                  required
+                  placeholder="Ex: Farmácia Popular"
+                />
+              </div>
+              <div class="form-group">
+                <label>Categoria <span class="required">*</span></label>
+                <select id="categoria" name="categoria" required>
+                  <option value="">Selecione...</option>
+                  <option value="Restaurantes">🍽️ Restaurantes</option>
+                  <option value="Farmácias">💊 Farmácias</option>
+                  <option value="Oficinas">🔧 Oficinas</option>
+                  <option value="Escolas">📚 Escolas</option>
+                  <option value="Clínicas">🏥 Clínicas</option>
+                  <option value="Supermercados">🛒 Supermercados</option>
+                  <option value="Salões de Beleza">💇 Salões de Beleza</option>
+                  <option value="Alfaiatarias">👔 Alfaiatarias</option>
+                  <option value="Materiais de Construção">
+                    🏗️ Materiais de Construção
+                  </option>
+                  <option value="Transportes">🚗 Transportes</option>
+                  <option value="Hotéis">🏨 Hotéis</option>
+                  <option value="ONGs">🤝 ONGs</option>
+                  <option value="Associações">🤝 Associações</option>
+                  <option value="Serviços de Informática">
+                    💻 Serviços de Informática
+                  </option>
+                  <option value="Eletrodomésticos">📺 Eletrodomésticos</option>
+                  <option value="Eventos & Decoração">
+                    🎉 Eventos & Decoração
+                  </option>
+                  <option value="Bancos">🏦 Bancos</option>
+                  <option value="Segurança">🔒 Segurança</option>
+                  <option value="Imobiliárias">🏠 Imobiliárias</option>
+                  <option value="Outros">📦 Outros</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Subcategoria</label>
+                <input
+                  type="text"
+                  id="subcategoria"
+                  name="subcategoria"
+                  placeholder="Ex: Farmácia Comunitária"
+                />
+                <small>Especificação da categoria</small>
+              </div>
+              <div class="form-group">
+                <label>Bairro <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="bairro"
+                  name="bairro"
+                  required
+                  placeholder="Ex: Centro"
+                />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0">
+              <label>Descrição <span class="required">*</span></label>
+              <textarea
+                id="descricao"
+                name="descricao"
+                rows="4"
+                required
+                placeholder="Descreva a empresa, serviços oferecidos, diferenciais..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Seção: Imagens (SISTEMA BASE64 CORRIGIDO) -->
+          <div class="form-section" id="secaoImagens">
+            <h3>🖼️ Imagens da Empresa</h3>
+            <div class="form-group">
+              <div
+                class="upload-area"
+                id="uploadAreaImagens"
+                onclick="document.getElementById('inputImagens').click()"
+              >
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">Clique para adicionar fotos</div>
+                <div class="upload-hint" id="textoUploadImagens">
+                  Limite de 3 fotos • JPG, PNG até 5MB cada
+                </div>
+                <input
+                  type="file"
+                  id="inputImagens"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onchange="processarImagens(this.files)"
+                />
+              </div>
+              <div class="imagens-preview" id="previewImagens"></div>
+              <div id="statusImagens"></div>
+            </div>
+          </div>
+
+          <!-- Seção: Banner (Pro/VIP) -->
+          <div class="form-section locked" id="secaoBanner">
+            <h3>
+              🎨 Banner da Página <span class="recurso-badge pro">Pro</span>
+            </h3>
+            <div class="form-group">
+              <div
+                class="upload-area"
+                id="uploadAreaBanner"
+                onclick="
+                  if (!this.closest('.locked'))
+                    document.getElementById('inputBanner').click();
+                "
+              >
+                <div class="upload-icon">🖼️</div>
+                <div class="upload-text">Clique para adicionar banner</div>
+                <div class="upload-hint">
+                  Recomendado: 1200x400px • JPG ou PNG
+                </div>
+                <input
+                  type="file"
+                  id="inputBanner"
+                  accept="image/jpeg,image/png"
+                  onchange="processarBanner(this.files[0])"
+                  disabled
+                />
+              </div>
+              <div id="previewBanner"></div>
+            </div>
+          </div>
+
+          <!-- Seção: Cores (Pro/VIP) -->
+          <div class="form-section locked" id="secaoCores">
+            <h3>
+              🎨 Cores da Página <span class="recurso-badge pro">Pro</span>
+            </h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Cor Primária</label>
+                <input type="color" id="corPrimaria" value="#3b82f6" disabled />
+              </div>
+              <div class="form-group">
+                <label>Cor Secundária</label>
+                <input
+                  type="color"
+                  id="corSecundaria"
+                  value="#1e40af"
+                  disabled
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção: Redes Sociais (Pro/VIP) -->
+          <div class="form-section locked" id="secaoRedes">
+            <h3>📱 Redes Sociais <span class="recurso-badge pro">Pro</span></h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Facebook</label>
+                <input
+                  type="url"
+                  id="facebook"
+                  placeholder="https://facebook.com/..."
+                  disabled
+                />
+              </div>
+              <div class="form-group">
+                <label>Instagram</label>
+                <input
+                  type="url"
+                  id="instagram"
+                  placeholder="https://instagram.com/..."
+                  disabled
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>LinkedIn</label>
+                <input
+                  type="url"
+                  id="linkedin"
+                  placeholder="https://linkedin.com/..."
+                  disabled
+                />
+              </div>
+              <div class="form-group">
+                <label>YouTube</label>
+                <input
+                  type="url"
+                  id="youtube"
+                  placeholder="https://youtube.com/..."
+                  disabled
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção: Marketing (VIP) -->
+          <div class="form-section locked" id="secaoMarketing">
+            <h3>
+              📢 Marketing e SEO <span class="recurso-badge vip">VIP</span>
+            </h3>
+            <div class="form-group">
+              <label>Palavras-chave SEO</label>
+              <div class="tag-input" id="keywordsContainer">
+                <input
+                  type="text"
+                  id="inputKeyword"
+                  placeholder="Digite e pressione Enter"
+                  onkeypress="adicionarKeyword(event)"
+                  disabled
+                />
+              </div>
+              <small
+                >Palavras-chave para melhorar o posicionamento no Google</small
+              >
+            </div>
+            <div class="form-group" style="margin-top: 16px">
+              <label>Google Analytics ID</label>
+              <input
+                type="text"
+                id="analyticsId"
+                placeholder="UA-XXXXXXXXX-X"
+                disabled
+              />
+            </div>
+            <div class="form-group">
+              <label>Pixel do Facebook</label>
+              <input
+                type="text"
+                id="facebookPixel"
+                placeholder="ID do pixel"
+                disabled
+              />
+            </div>
+            <div class="form-group">
+              <label>Script Personalizado</label>
+              <textarea
+                id="scriptPersonalizado"
+                rows="3"
+                placeholder="Código HTML/JS personalizado"
+                disabled
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Seção: Contacto -->
+          <div class="form-section">
+            <h3>📍 Contacto e Localização</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label
+                  >Telefone Principal <span class="required">*</span></label
+                >
+                <input
+                  type="tel"
+                  id="contacto"
+                  name="contacto"
+                  required
+                  placeholder="+258 84 000 0000"
+                />
+              </div>
+              <div class="form-group">
+                <label>WhatsApp</label>
+                <input
+                  type="tel"
+                  id="whatsapp"
+                  name="whatsapp"
+                  placeholder="258840000000"
+                />
+                <small>Apenas números, sem espaços ou +</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="empresa@email.com"
+                />
+              </div>
+              <div class="form-group">
+                <label>Website</label>
+                <input
+                  type="url"
+                  id="website"
+                  name="website"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0">
+              <label>Endereço Completo <span class="required">*</span></label>
+              <input
+                type="text"
+                id="endereco"
+                name="endereco"
+                required
+                placeholder="Rua/Avenida, Número, Ponto de Referência"
+              />
+            </div>
+          </div>
+
+          <!-- Seção: Funcionamento -->
+          <div class="form-section">
+            <h3>🕐 Horário de Funcionamento</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Horário Semana <span class="required">*</span></label>
+                <input
+                  type="text"
+                  id="horario"
+                  name="horario"
+                  required
+                  placeholder="Ex: 08:00 - 18:00"
+                />
+              </div>
+              <div class="form-group">
+                <label>Horário Fim de Semana</label>
+                <input
+                  type="text"
+                  id="horarioFimSemana"
+                  name="horarioFimSemana"
+                  placeholder="Ex: 08:00 - 12:00 ou Fechado"
+                />
+              </div>
+            </div>
+            <div class="checkbox-group" style="max-width: 300px">
+              <input type="checkbox" id="aberto24h" name="aberto24h" />
+              <label for="aberto24h">🌙 Aberto 24 horas</label>
+            </div>
+          </div>
+
+          <!-- Seção: Plano -->
+          <div class="form-section">
+            <h3>💎 Plano e Status</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Plano <span class="required">*</span></label>
+                <select
+                  id="plano"
+                  name="plano"
+                  required
+                  onchange="atualizarInterfacePlano()"
+                >
+                  <option value="basico">🆓 Básico (Grátis)</option>
+                  <option value="pro">⭐ Pro (500 MT/mês)</option>
+                  <option value="vip">🔥 VIP (1.500 MT/mês)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Valor do Plano</label>
+                <input
+                  type="text"
+                  id="valorPlano"
+                  value="Grátis"
+                  readonly
+                  style="background: var(--bg); opacity: 0.7"
+                />
+              </div>
+            </div>
+            <div class="form-row" style="margin-bottom: 0">
+              <div class="checkbox-group">
+                <input type="checkbox" id="destaque" name="destaque" />
+                <label for="destaque"
+                  >⭐ Aparecer em Destaque (primeiro nas buscas)</label
+                >
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="ativo" name="ativo" checked />
+                <label for="ativo">✅ Empresa Ativa (visível no site)</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção: Serviços -->
+          <div class="form-section">
+            <h3>🛎️ Serviços Oferecidos</h3>
+            <div class="form-group">
+              <label>Serviços (pressione Enter para adicionar)</label>
+              <div class="tag-input" id="servicosContainer">
+                <input
+                  type="text"
+                  id="inputServico"
+                  placeholder="Digite um serviço e pressione Enter"
+                  onkeypress="adicionarServico(event)"
+                />
+              </div>
+              <small
+                >Ex: Venda de medicamentos, Atendimento 24h, Entrega em
+                domicílio</small
+              >
+            </div>
+            <div class="form-row" style="margin-top: 20px; margin-bottom: 0">
+              <div class="form-group">
+                <label>Formas de Pagamento Aceitas</label>
+                <div
+                  style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                    margin-top: 8px;
+                  "
+                >
+                  <label class="checkbox-group" style="margin: 0"
+                    ><input
+                      type="checkbox"
+                      name="pagamento"
+                      value="Dinheiro"
+                      checked
+                    />
+                    Dinheiro</label
+                  >
+                  <label class="checkbox-group" style="margin: 0"
+                    ><input
+                      type="checkbox"
+                      name="pagamento"
+                      value="MPesa"
+                      checked
+                    />
+                    MPesa</label
+                  >
+                  <label class="checkbox-group" style="margin: 0"
+                    ><input type="checkbox" name="pagamento" value="eMola" />
+                    eMola</label
+                  >
+                  <label class="checkbox-group" style="margin: 0"
+                    ><input type="checkbox" name="pagamento" value="Cartão" />
+                    Cartão</label
+                  >
+                  <label class="checkbox-group" style="margin: 0"
+                    ><input
+                      type="checkbox"
+                      name="pagamento"
+                      value="Transferência"
+                    />
+                    Transferência</label
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção: Observações -->
+          <div class="form-section">
+            <h3>📝 Observações Internas</h3>
+            <div class="form-group" style="margin-bottom: 0">
+              <label>Notas do Administrador</label>
+              <textarea
+                id="observacoes"
+                name="observacoes"
+                rows="3"
+                placeholder="Informações internas sobre a empresa..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Botões -->
+          <div class="btn-group">
+            <button
+              type="button"
+              class="btn btn-outline"
+              onclick="history.back()"
+            >
+              ← Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline"
+              onclick="excluirEmpresa()"
+              style="background: rgba(239, 68, 68, 0.1); color: var(--danger)"
+            >
+              🗑️ Excluir
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnSalvar">
+              💾 Salvar Alterações
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <script>
+      // ==========================================
+      // CONFIGURAÇÃO
+      // ==========================================
+      const CONFIG = {
+        CHAVE_EMPRESAS: "guia_chimoio_empresas_v2",
+        TAMANHO_MAXIMO: 5 * 1024 * 1024, // 5MB
+        TIPOS_PERMITIDOS: ["image/jpeg", "image/png", "image/webp"],
+      };
+
+      const LIMITES = {
+        basico: {
+          fotos: 3,
+          temBanner: false,
+          temRedes: false,
+          temMarketing: false,
+        },
+        pro: {
+          fotos: 10,
+          temBanner: true,
+          temRedes: true,
+          temMarketing: false,
+        },
+        vip: {
+          fotos: Infinity,
+          temBanner: true,
+          temRedes: true,
+          temMarketing: true,
+        },
+      };
+
+      let empresaId = null;
+      let empresaAtual = null;
+      let imagens = []; // Array de objetos { id, dataUrl, nome, tamanho }
+      let banner = null; // Objeto { dataUrl, nome, tamanho }
+      let servicos = [];
+      let keywords = [];
+
+      // ==========================================
+      // SISTEMA DE UPLOAD BASE64 (CORREÇÃO PRINCIPAL)
+      // ==========================================
+
+      /**
+       * Converte arquivo File para Data URL (Base64)
+       */
+      function arquivoParaBase64(arquivo) {
+        return new Promise((resolve, reject) => {
+          const leitor = new FileReader();
+          leitor.onload = (e) => resolve(e.target.result);
+          leitor.onerror = reject;
+          leitor.readAsDataURL(arquivo);
+        });
+      }
+
+      /**
+       * Valida arquivo antes de processar
+       */
+      function validarArquivo(arquivo) {
+        if (!CONFIG.TIPOS_PERMITIDOS.includes(arquivo.type)) {
+          mostrarAlerta(
+            `Tipo não permitido: ${arquivo.type}. Use JPG, PNG ou WebP.`,
+            "error",
+          );
+          return false;
+        }
+        if (arquivo.size > CONFIG.TAMANHO_MAXIMO) {
+          mostrarAlerta(
+            `Arquivo muito grande: ${formatarBytes(arquivo.size)}. Máximo: 5MB.`,
+            "error",
+          );
+          return false;
+        }
+        return true;
+      }
+
+      /**
+       * Formata bytes para tamanho legível
+       */
+      function formatarBytes(bytes) {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      }
+
+      /**
+       * Processa múltiplas imagens e converte para Base64
+       */
+      async function processarImagens(arquivos) {
+        const plano = document.getElementById("plano").value;
+        const limite = LIMITES[plano].fotos;
+
+        if (imagens.length >= limite && limite !== Infinity) {
+          mostrarAlerta(
+            `Limite de ${limite} fotos atingido para o plano ${plano.toUpperCase()}`,
+            "error",
+          );
+          return;
+        }
+
+        const espacoRestante =
+          limite === Infinity ? Infinity : limite - imagens.length;
+        const arquivosParaProcessar = Array.from(arquivos).slice(
+          0,
+          espacoRestante,
+        );
+
+        for (const arquivo of arquivosParaProcessar) {
+          try {
+            if (!validarArquivo(arquivo)) continue;
+
+            const dataUrl = await arquivoParaBase64(arquivo);
+            imagens.push({
+              id: Date.now() + Math.random(),
+              dataUrl: dataUrl,
+              nome: arquivo.name,
+              tamanho: formatarBytes(arquivo.size),
+            });
+
+            console.log(`✅ Imagem convertida: ${arquivo.name}`);
+          } catch (erro) {
+            console.error(`❌ Erro ao processar ${arquivo.name}:`, erro);
+            mostrarAlerta(`Erro ao processar ${arquivo.name}`, "error");
+          }
+        }
+
+        renderizarImagens();
+        atualizarStatusImagens();
+      }
+
+      /**
+       * Processa banner e converte para Base64
+       */
+      async function processarBanner(arquivo) {
+        if (!arquivo) return;
+
+        try {
+          if (!validarArquivo(arquivo)) return;
+
+          const dataUrl = await arquivoParaBase64(arquivo);
+          banner = {
+            dataUrl: dataUrl,
+            nome: arquivo.name,
+            tamanho: formatarBytes(arquivo.size),
+          };
+
+          renderizarBanner();
+          console.log(`✅ Banner convertido: ${arquivo.name}`);
+        } catch (erro) {
+          console.error("❌ Erro ao processar banner:", erro);
+          mostrarAlerta("Erro ao processar banner", "error");
+        }
+      }
+
+      /**
+       * Renderiza preview das imagens
+       */
+      function renderizarImagens() {
+        const container = document.getElementById("previewImagens");
+
+        if (imagens.length === 0) {
+          container.innerHTML = "";
+          return;
+        }
+
+        container.innerHTML = imagens
+          .map(
+            (img, index) => `
+          <div class="imagem-item">
+            <img src="${img.dataUrl}" alt="${img.nome}" loading="lazy" />
+            <button type="button" class="remove-btn" onclick="removerImagem(${index})" title="Remover">×</button>
+            <div class="imagem-info">${img.tamanho}</div>
+          </div>
+        `,
+          )
+          .join("");
+      }
+
+      /**
+       * Renderiza preview do banner
+       */
+      function renderizarBanner() {
+        const container = document.getElementById("previewBanner");
+
+        if (!banner) {
+          container.innerHTML = "";
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="banner-preview-container">
+            <img src="${banner.dataUrl}" class="banner-preview-img" alt="Banner" />
+            <button type="button" onclick="removerBanner()" 
+                    style="position: absolute; top: 8px; right: 8px; background: rgba(239,68,68,0.9); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;">
+              ×
+            </button>
+            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
+              ${banner.nome} • ${banner.tamanho}
+            </div>
+          </div>
+        `;
+      }
+
+      /**
+       * Atualiza status de limite de imagens
+       */
+      function atualizarStatusImagens() {
+        const plano = document.getElementById("plano").value;
+        const limite = LIMITES[plano].fotos;
+        const usadas = imagens.length;
+        const restantes = limite === Infinity ? "∞" : limite - usadas;
+        const container = document.getElementById("statusImagens");
+
+        if (limite !== Infinity && usadas >= limite) {
+          container.innerHTML = `<div class="limite-aviso">⚠️ Limite de ${limite} fotos atingido</div>`;
+          document.getElementById("inputImagens").disabled = true;
+        } else {
+          container.innerHTML = `<div class="limite-ok">✓ ${usadas} de ${limite === Infinity ? "∞" : limite} fotos (${restantes} restantes)</div>`;
+          document.getElementById("inputImagens").disabled = false;
+        }
+      }
+
+      function removerImagem(index) {
+        imagens.splice(index, 1);
+        renderizarImagens();
+        atualizarStatusImagens();
+      }
+
+      function removerBanner() {
+        banner = null;
+        renderizarBanner();
+      }
+
+      // ==========================================
+      // INICIALIZAÇÃO E CARREGAMENTO
+      // ==========================================
+
+      function init() {
+        if (!sessionStorage.getItem("adminUser")) {
+          window.location.href = "index.html";
+          return;
+        }
+
+        // Pegar ID da URL
+        const params = new URLSearchParams(window.location.search);
+        empresaId = parseInt(params.get("id"));
+
+        if (!empresaId) {
+          mostrarAlerta("ID da empresa não fornecido", "error");
+          setTimeout(() => (window.location.href = "empresas.html"), 2000);
+          return;
+        }
+
+        carregarEmpresa();
+        configurarTema();
+        configurarEventos();
+      }
+
+      function carregarEmpresa() {
+        try {
+          const dados = localStorage.getItem(CONFIG.CHAVE_EMPRESAS);
+          if (!dados) {
+            mostrarAlerta("Nenhuma empresa encontrada", "error");
+            return;
+          }
+
+          const empresas = JSON.parse(dados);
+          empresaAtual = empresas.find((e) => e.id === empresaId);
+
+          if (!empresaAtual) {
+            mostrarAlerta("Empresa não encontrada", "error");
+            setTimeout(() => (window.location.href = "empresas.html"), 2000);
+            return;
+          }
+
+          preencherFormulario();
+          console.log("✅ Empresa carregada:", empresaAtual);
+        } catch (erro) {
+          console.error("❌ Erro ao carregar:", erro);
+          mostrarAlerta("Erro ao carregar empresa", "error");
+        }
+      }
+
+      function preencherFormulario() {
+        const e = empresaAtual;
+
+        // Campos básicos
+        document.getElementById("nome").value = e.nome || "";
+        document.getElementById("categoria").value = e.categoria || "";
+        document.getElementById("subcategoria").value = e.subcategoria || "";
+        document.getElementById("bairro").value = e.bairro || "";
+        document.getElementById("descricao").value = e.descricao || "";
+        document.getElementById("contacto").value = e.contacto || "";
+        document.getElementById("whatsapp").value = e.whatsapp || "";
+        document.getElementById("email").value = e.email || "";
+        document.getElementById("website").value = e.website || "";
+        document.getElementById("endereco").value = e.endereco || "";
+        document.getElementById("horario").value = e.horario || "";
+        document.getElementById("horarioFimSemana").value =
+          e.horario_fim_semana || "";
+        document.getElementById("aberto24h").checked = e.aberto_24h || false;
+        document.getElementById("plano").value = e.plano || "basico";
+        document.getElementById("destaque").checked = e.destaque || false;
+        document.getElementById("ativo").checked = e.ativo !== false;
+        document.getElementById("observacoes").value = e.observacoes || "";
+
+        // Carregar imagens existentes (Base64)
+        if (e.imagens && Array.isArray(e.imagens)) {
+          imagens = e.imagens.map((url, idx) => ({
+            id: Date.now() + idx,
+            dataUrl: url, // Já está em Base64
+            nome: `Imagem ${idx + 1}`,
+            tamanho: "Salva",
+          }));
+          renderizarImagens();
+        }
+
+        // Carregar banner existente
+        if (e.banner) {
+          banner = {
+            dataUrl: e.banner, // Já está em Base64
+            nome: "Banner",
+            tamanho: "Salvo",
+          };
+          renderizarBanner();
+        }
+
+        // Serviços
+        if (e.servicos) {
+          servicos = [...e.servicos];
+          renderizarServicos();
+        }
+
+        // Formas de pagamento
+        if (e.formas_pagamento) {
+          document.querySelectorAll('input[name="pagamento"]').forEach((cb) => {
+            cb.checked = e.formas_pagamento.includes(cb.value);
+          });
+        }
+
+        // Redes sociais
+        if (e.redes) {
+          document.getElementById("facebook").value = e.redes.facebook || "";
+          document.getElementById("instagram").value = e.redes.instagram || "";
+          document.getElementById("linkedin").value = e.redes.linkedin || "";
+          document.getElementById("youtube").value = e.redes.youtube || "";
+        }
+
+        // Cores
+        if (e.cores) {
+          document.getElementById("corPrimaria").value =
+            e.cores.primaria || "#3b82f6";
+          document.getElementById("corSecundaria").value =
+            e.cores.secundaria || "#1e40af";
+        }
+
+        // Marketing
+        if (e.marketing) {
+          if (e.marketing.keywords) {
+            keywords = [...e.marketing.keywords];
+            renderizarKeywords();
+          }
+          document.getElementById("analyticsId").value =
+            e.marketing.analyticsId || "";
+          document.getElementById("facebookPixel").value =
+            e.marketing.facebookPixel || "";
+          document.getElementById("scriptPersonalizado").value =
+            e.marketing.script || "";
+        }
+
+        atualizarInterfacePlano();
+      }
+
+      // ==========================================
+      // INTERFACE E PLANOS
+      // ==========================================
+
+      function atualizarInterfacePlano() {
+        const plano = document.getElementById("plano").value;
+        const limites = LIMITES[plano];
+
+        // Badge
+        const badge = document.getElementById("planoBadge");
+        badge.className = `plano-badge ${plano}`;
+        badge.textContent =
+          plano === "basico"
+            ? "🆓 Plano Básico"
+            : plano === "pro"
+              ? "⭐ Plano Pro"
+              : "🔥 Plano VIP";
+
+        // Valor
+        const precos = {
+          basico: "Grátis",
+          pro: "500 MT/mês",
+          vip: "1.500 MT/mês",
+        };
+        document.getElementById("valorPlano").value = precos[plano];
+
+        // Verificar limite de imagens
+        if (imagens.length > limites.fotos && limites.fotos !== Infinity) {
+          imagens = imagens.slice(0, limites.fotos);
+          renderizarImagens();
+        }
+        atualizarStatusImagens();
+
+        // Seções bloqueadas/desbloqueadas
+        toggleSecao("secaoBanner", limites.temBanner);
+        toggleSecao("secaoCores", limites.temBanner);
+        toggleSecao("secaoRedes", limites.temRedes);
+        toggleSecao("secaoMarketing", limites.temMarketing);
+      }
+
+      function toggleSecao(id, ativar) {
+        const secao = document.getElementById(id);
+        if (ativar) {
+          secao.classList.remove("locked");
+          secao
+            .querySelectorAll("input, textarea")
+            .forEach((input) => (input.disabled = false));
+        } else {
+          secao.classList.add("locked");
+          secao
+            .querySelectorAll("input, textarea")
+            .forEach((input) => (input.disabled = true));
+        }
+      }
+
+      // ==========================================
+      // SERVIÇOS E KEYWORDS
+      // ==========================================
+
+      function adicionarServico(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          const input = document.getElementById("inputServico");
+          const valor = input.value.trim();
+
+          if (valor && !servicos.includes(valor)) {
+            servicos.push(valor);
+            renderizarServicos();
+            input.value = "";
+          }
+        }
+      }
+
+      function removerServico(index) {
+        servicos.splice(index, 1);
+        renderizarServicos();
+      }
+
+      function renderizarServicos() {
+        const container = document.getElementById("servicosContainer");
+        const input = document.getElementById("inputServico");
+
+        container.innerHTML =
+          servicos
+            .map(
+              (s, i) => `
+          <span class="tag">
+            ${s}
+            <button type="button" onclick="removerServico(${i})">×</button>
+          </span>
+        `,
+            )
+            .join("") + input.outerHTML;
+
+        const novoInput = container.querySelector("input");
+        novoInput.addEventListener("keypress", adicionarServico);
+        novoInput.focus();
+      }
+
+      function adicionarKeyword(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          const input = document.getElementById("inputKeyword");
+          const valor = input.value.trim();
+
+          if (valor && !keywords.includes(valor)) {
+            keywords.push(valor);
+            renderizarKeywords();
+            input.value = "";
+          }
+        }
+      }
+
+      function removerKeyword(index) {
+        keywords.splice(index, 1);
+        renderizarKeywords();
+      }
+
+      function renderizarKeywords() {
+        const container = document.getElementById("keywordsContainer");
+        const input = document.getElementById("inputKeyword");
+
+        container.innerHTML =
+          keywords
+            .map(
+              (k, i) => `
+          <span class="tag" style="background: #8b5cf6;">
+            ${k}
+            <button type="button" onclick="removerKeyword(${i})">×</button>
+          </span>
+        `,
+            )
+            .join("") + input.outerHTML;
+
+        const novoInput = container.querySelector("input");
+        novoInput.addEventListener("keypress", adicionarKeyword);
+        novoInput.focus();
+      }
+
+      // ==========================================
+      // SALVAR ALTERAÇÕES
+      // ==========================================
+
+      async function salvarEmpresa(event) {
+        event.preventDefault();
+
+        const btn = document.getElementById("btnSalvar");
+        btn.disabled = true;
+        btn.innerHTML = "⏳ Salvando...";
+
+        try {
+          const pagamentos = Array.from(
+            document.querySelectorAll('input[name="pagamento"]:checked'),
+          ).map((cb) => cb.value);
+
+          const plano = document.getElementById("plano").value;
+          const limites = LIMITES[plano];
+
+          const empresaAtualizada = {
+            ...empresaAtual,
+            nome: document.getElementById("nome").value.trim(),
+            categoria: document.getElementById("categoria").value,
+            subcategoria: document.getElementById("subcategoria").value.trim(),
+            bairro: document.getElementById("bairro").value.trim(),
+            descricao: document.getElementById("descricao").value.trim(),
+            contacto: document.getElementById("contacto").value.trim(),
+            whatsapp: document.getElementById("whatsapp").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            website: document.getElementById("website").value.trim(),
+            endereco: document.getElementById("endereco").value.trim(),
+            horario: document.getElementById("horario").value.trim(),
+            horario_fim_semana: document
+              .getElementById("horarioFimSemana")
+              .value.trim(),
+            aberto_24h: document.getElementById("aberto24h").checked,
+            plano: plano,
+            destaque: document.getElementById("destaque").checked,
+            ativo: document.getElementById("ativo").checked,
+            servicos: servicos,
+            formas_pagamento: pagamentos,
+            observacoes: document.getElementById("observacoes").value.trim(),
+            data_atualizacao: new Date().toISOString(),
+
+            // IMAGENS EM BASE64 - CORREÇÃO PRINCIPAL
+            imagens: imagens.map((img) => img.dataUrl),
+
+            // Banner se permitido
+            banner: limites.temBanner && banner ? banner.dataUrl : null,
+          };
+
+          // Redes sociais
+          if (limites.temRedes) {
+            empresaAtualizada.redes = {
+              facebook: document.getElementById("facebook").value,
+              instagram: document.getElementById("instagram").value,
+              linkedin: document.getElementById("linkedin").value,
+              youtube: document.getElementById("youtube").value,
+            };
+          }
+
+          // Cores
+          if (limites.temBanner) {
+            empresaAtualizada.cores = {
+              primaria: document.getElementById("corPrimaria").value,
+              secundaria: document.getElementById("corSecundaria").value,
+            };
+          }
+
+          // Marketing
+          if (limites.temMarketing) {
+            empresaAtualizada.marketing = {
+              keywords: keywords,
+              analyticsId: document.getElementById("analyticsId").value,
+              facebookPixel: document.getElementById("facebookPixel").value,
+              script: document.getElementById("scriptPersonalizado").value,
+            };
+          }
+
+          // Salvar
+          let empresas = JSON.parse(
+            localStorage.getItem(CONFIG.CHAVE_EMPRESAS) || "[]",
+          );
+          const index = empresas.findIndex((e) => e.id === empresaId);
+
+          if (index !== -1) {
+            empresas[index] = empresaAtualizada;
+            localStorage.setItem(
+              CONFIG.CHAVE_EMPRESAS,
+              JSON.stringify(empresas),
+            );
+
+            mostrarAlerta("Empresa atualizada com sucesso!", "success");
+
+            window.dispatchEvent(
+              new StorageEvent("storage", { key: CONFIG.CHAVE_EMPRESAS }),
+            );
+
+            setTimeout(() => (window.location.href = "empresas.html"), 1500);
+          }
+        } catch (erro) {
+          console.error("❌ Erro ao salvar:", erro);
+          mostrarAlerta("Erro ao salvar: " + erro.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = "💾 Salvar Alterações";
+        }
+      }
+
+      function excluirEmpresa() {
+        if (
+          !confirm(
+            "Tem certeza que deseja excluir esta empresa permanentemente?",
+          )
+        )
+          return;
+
+        try {
+          let empresas = JSON.parse(
+            localStorage.getItem(CONFIG.CHAVE_EMPRESAS) || "[]",
+          );
+          empresas = empresas.filter((e) => e.id !== empresaId);
+          localStorage.setItem(CONFIG.CHAVE_EMPRESAS, JSON.stringify(empresas));
+
+          window.dispatchEvent(
+            new StorageEvent("storage", { key: CONFIG.CHAVE_EMPRESAS }),
+          );
+          window.location.href = "empresas.html";
+        } catch (erro) {
+          mostrarAlerta("Erro ao excluir", "error");
+        }
+      }
+
+      // ==========================================
+      // UTILITÁRIOS
+      // ==========================================
+
+      function mostrarAlerta(mensagem, tipo = "success") {
+        const container = document.getElementById("alertContainer");
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `alert alert-${tipo}`;
+        alertDiv.innerHTML = (tipo === "success" ? "✅ " : "❌ ") + mensagem;
+
+        container.innerHTML = "";
+        container.appendChild(alertDiv);
+
+        setTimeout(() => alertDiv.remove(), 5000);
+      }
+
+      function configurarTema() {
+        const themeToggle = document.getElementById("themeToggle");
+        const root = document.documentElement;
+        const savedTheme = localStorage.getItem("theme") || "dark";
+
+        root.setAttribute("data-theme", savedTheme);
+        themeToggle.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+
+        themeToggle.addEventListener("click", () => {
+          const atual = root.getAttribute("data-theme");
+          const proximo = atual === "dark" ? "light" : "dark";
+          root.setAttribute("data-theme", proximo);
+          localStorage.setItem("theme", proximo);
+          themeToggle.textContent = proximo === "dark" ? "☀️" : "🌙";
+        });
+      }
+
+      function configurarEventos() {
+        document
+          .getElementById("formEditarEmpresa")
+          .addEventListener("submit", salvarEmpresa);
+
+        // Drag and drop para imagens
+        const uploadArea = document.getElementById("uploadAreaImagens");
+
+        uploadArea.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          uploadArea.classList.add("dragover");
+        });
+
+        uploadArea.addEventListener("dragleave", () => {
+          uploadArea.classList.remove("dragover");
+        });
+
+        uploadArea.addEventListener("drop", (e) => {
+          e.preventDefault();
+          uploadArea.classList.remove("dragover");
+          if (e.dataTransfer.files.length > 0) {
+            processarImagens(e.dataTransfer.files);
+          }
+        });
+      }
+
+      function logout() {
+        sessionStorage.removeItem("adminUser");
+        window.location.href = "index.html";
+      }
+
+      // Iniciar
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+      } else {
+        init();
+      }
+    </script>
+  </body>
+</html>
