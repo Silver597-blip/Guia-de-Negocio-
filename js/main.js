@@ -1,305 +1,333 @@
-const express = require("express");
-const cors = require("cors");
-const fs = require("fs").promises;
-const path = require("path");
+// ==========================================
+// CONFIGURAÇÃO
+// ==========================================
+const CONFIG = {
+  whatsapp: "258842043370",
+  API: "https://SEU-SERVIDOR.onrender.com/api",
+};
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+// ==========================================
+// DADOS PADRÃO (empresas de exemplo)
+// ==========================================
+const EMPRESAS_PADRAO = [
+  {
+    id: 1,
+    nome: "Farmácia Popular Chimoio",
+    categoria: "Farmácias",
+    bairro: "Centro",
+    contacto: "+258 84 123 4567",
+    whatsapp: "258841234567",
+    horario: "08:00 - 20:00",
+    destaque: true,
+    plano: "destaque",
+    ativo: true,
+    descricao: "Farmácia completa com vasto stock de medicamentos.",
+    data_cadastro: "2024-01-15",
+  },
+  {
+    id: 2,
+    nome: "Restaurante Sabores da Terra",
+    categoria: "Restaurantes",
+    bairro: "Vila Nova",
+    contacto: "+258 86 234 5678",
+    whatsapp: "258862345678",
+    horario: "09:00 - 22:00",
+    destaque: true,
+    plano: "destaque",
+    ativo: true,
+    descricao: "Autêntica cozinha moçambicana.",
+    data_cadastro: "2024-01-14",
+  },
+  {
+    id: 3,
+    nome: "Oficina Mecânica do Zé",
+    categoria: "Oficinas",
+    bairro: "7 de Abril",
+    contacto: "+258 87 345 6789",
+    whatsapp: "258873456789",
+    horario: "07:30 - 17:30",
+    destaque: false,
+    plano: "pro",
+    ativo: true,
+    descricao: "Mecânica automotiva completa.",
+    data_cadastro: "2024-01-13",
+  },
+];
 
-app.use(cors());
-app.use(express.json());
-
-// Servir arquivos estáticos (frontend)
-app.use(express.static(path.join(__dirname, "public")));
-
-// Caminhos dos arquivos de dados
-const DATA_DIR = path.join(__dirname, "data");
-const EMPRESAS_FILE = path.join(DATA_DIR, "empresas.json");
-const MENSAGENS_FILE = path.join(DATA_DIR, "mensagens.json");
-const PAGAMENTOS_FILE = path.join(DATA_DIR, "pagamentos.json");
-
-// Garantir que a pasta data existe
-async function garantirDataDir() {
+// ==========================================
+// CARREGAR EMPRESAS
+// ==========================================
+async function carregarEmpresas() {
   try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-  } catch (e) {
-    console.log("Pasta data já existe");
+    const resposta = await fetch(CONFIG.API + "/empresas");
+    const data = await resposta.json();
+
+    if (data.empresas) {
+      return data.empresas.filter((e) => e.ativo !== false);
+    }
+
+    return [];
+  } catch (erro) {
+    console.error("Erro ao carregar empresas:", erro);
+    return [];
   }
 }
 
-// Ler arquivo JSON
-async function lerJSON(arquivo) {
-  try {
-    await garantirDataDir();
-    const conteudo = await fs.readFile(arquivo, "utf8");
-    return JSON.parse(conteudo);
-  } catch (e) {
-    // Retorna estrutura vazia se arquivo não existir
-    if (arquivo.includes("empresas")) {
-      return { meta: {}, empresas: [] };
-    } else if (arquivo.includes("mensagens")) {
-      return { meta: {}, mensagens: [] };
-    } else if (arquivo.includes("pagamentos")) {
-      return { meta: {}, pagamentos: [] };
-    }
-    return {};
-  }
+// ==========================================
+// CATEGORIAS
+// ==========================================
+const CATEGORIAS = [
+  "Restaurantes",
+  "Farmácias",
+  "Oficinas",
+  "Escolas",
+  "Clínicas",
+  "Supermercados",
+  "Salões de Beleza",
+  "Alfaiatarias",
+  "Materiais de Construção",
+  "Transportes",
+  "Hotéis",
+  "ONGs",
+  "Associação",
+  "Serviços de Informática",
+  "Eletrodomésticos",
+  "Eventos & Decoração",
+  "Bancos",
+  "Segurança",
+  "Imobiliárias",
+];
+
+// ==========================================
+// UTILITÁRIOS
+// ==========================================
+const $ = (id) => document.getElementById(id);
+
+function waLink(numero, texto) {
+  const msg = encodeURIComponent(texto);
+  return `https://wa.me/${numero}?text=${msg}`;
 }
 
-// Escrever arquivo JSON
-async function escreverJSON(arquivo, dados) {
-  await garantirDataDir();
-  await fs.writeFile(arquivo, JSON.stringify(dados, null, 2));
+function copyText(text) {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => alert("Contacto copiado: " + text))
+    .catch(() => prompt("Copie manualmente:", text));
+}
+
+function formatarData(dataString) {
+  if (!dataString) return "-";
+  const data = new Date(dataString);
+  return data.toLocaleDateString("pt-BR");
 }
 
 // ==========================================
-// ROTAS DE EMPRESAS
+// RENDERIZAR LISTA DE EMPRESAS
 // ==========================================
+function renderLista(targetId, items, limite = null) {
+  const el = $(targetId);
+  if (!el) return;
 
-// Listar todas as empresas
-app.get("/api/empresas", async (req, res) => {
-  try {
-    const dados = await lerJSON(EMPRESAS_FILE);
-    res.json({ 
-      success: true, 
-      empresas: dados.empresas || [],
-      meta: dados.meta || {}
-    });
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
+  // Filtrar apenas ativas e ordenar (destaque primeiro)
+  let empresas = items
+    .filter((e) => e.ativo !== false)
+    .sort((a, b) => (b.destaque === true) - (a.destaque === true));
+
+  // Aplicar limite se especificado
+  if (limite) {
+    empresas = empresas.slice(0, limite);
   }
-});
 
-// Buscar empresa por ID
-app.get("/api/empresas/:id", async (req, res) => {
-  try {
-    const dados = await lerJSON(EMPRESAS_FILE);
-    const empresa = dados.empresas.find(e => e.id == req.params.id);
-    if (empresa) {
-      res.json({ success: true, empresa });
-    } else {
-      res.status(404).json({ success: false, error: "Empresa não encontrada" });
+  if (empresas.length === 0) {
+    el.innerHTML = `
+      <div class="card" style="text-align: center; padding: 40px;">
+        <p style="color: var(--muted);">Nenhuma empresa encontrada.</p>
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML = empresas
+    .map((e, i) => {
+      const badge = e.destaque
+        ? `<span class="tag hot">⭐ Destaque</span>`
+        : `<span class="tag">${e.categoria}</span>`;
+
+      const wa = e.whatsapp || CONFIG.whatsapp;
+      const texto = `Olá! Vi a empresa "${e.nome}" no Guia de Negócios de Chimoio. Quero mais informações.`;
+
+      return `
+      <article class="item" style="animation-delay: ${i * 0.05}s">
+        <div class="top">
+          <div>
+            <div style="font-weight:800;font-size:16px">${e.nome}</div>
+            <div class="meta">${e.categoria} • ${e.bairro}</div>
+          </div>
+          ${badge}
+        </div>
+        <div class="meta">📞 ${e.contacto} • ⏰ ${e.horario}</div>
+        ${e.descricao ? `<div class="meta" style="margin-top: 8px;">${e.descricao.substring(0, 100)}${e.descricao.length > 100 ? "..." : ""}</div>` : ""}
+        <div class="actions">
+          <a class="btn green" target="_blank" href="${waLink(wa, texto)}">💬 WhatsApp</a>
+          <button class="btn" onclick="copyText('${e.contacto}')">📋 Copiar</button>
+          <a class="btn" href="empresa.html?id=${e.id}">ℹ️ Ver mais</a>
+        </div>
+      </article>
+    `;
+    })
+    .join("");
+}
+
+// ==========================================
+// RENDERIZAR OPÇÕES DE CATEGORIA
+// ==========================================
+function renderCategoriasOptions(selectId, todas = true) {
+  const sel = $(selectId);
+  if (!sel) return;
+
+  let html = todas ? `<option value="">Todas as categorias</option>` : "";
+  html += CATEGORIAS.map((c) => `<option value="${c}">${c}</option>`).join("");
+  sel.innerHTML = html;
+}
+
+// ==========================================
+// FILTRAR EMPRESAS
+// ==========================================
+function filtrar(lista, q, cat) {
+  q = (q || "").toLowerCase().trim();
+  return lista
+    .filter((e) => {
+      const okCat = !cat || e.categoria === cat;
+      const okQ =
+        !q ||
+        e.nome.toLowerCase().includes(q) ||
+        e.bairro.toLowerCase().includes(q) ||
+        e.categoria.toLowerCase().includes(q);
+      return okCat && okQ && e.ativo !== false;
+    })
+    .sort((a, b) => (b.destaque === true) - (a.destaque === true));
+}
+
+// ==========================================
+// ATUALIZAR KPIs
+// ==========================================
+function atualizarKPI() {
+  const empresas = carregarEmpresas();
+  const total = empresas.length;
+  const destaque = empresas.filter((e) => e.destaque).length;
+  const cats = new Set(empresas.map((e) => e.categoria)).size;
+  const bairros = new Set(empresas.map((e) => e.bairro)).size;
+
+  if ($("kpiTotal")) $("kpiTotal").textContent = total;
+  if ($("kpiDestaque")) $("kpiDestaque").textContent = destaque;
+  if ($("kpiCats")) $("kpiCats").textContent = cats;
+  if ($("kpiBairros")) $("kpiBairros").textContent = bairros;
+}
+
+// ==========================================
+// INICIALIZAR HOME
+// ==========================================
+async function initHome() {
+  const empresas = await carregarEmpresas();
+
+  renderCategoriasOptions("catHome");
+  atualizarKPI();
+
+  const qEl = $("qHome");
+  const cEl = $("catHome");
+
+  const run = () => {
+    const items = filtrar(empresas, qEl?.value, cEl?.value);
+    renderLista("listaHome", items, 10); // Mostrar apenas 10 na home
+  };
+
+  qEl?.addEventListener("input", run);
+  cEl?.addEventListener("change", run);
+
+  // Atualizar quando houver mudanças no storage
+  window.addEventListener("storage", (e) => {
+    if (e.key === CONFIG.empresasKey) {
+      console.log("🔄 Empresas atualizadas, recarregando...");
+      location.reload();
     }
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
-  }
-});
+  });
 
-// Criar nova empresa
-app.post("/api/empresas", async (req, res) => {
-  try {
-    const dados = await lerJSON(EMPRESAS_FILE);
-    const novaEmpresa = {
-      id: Date.now(),
-      ...req.body,
-      data_cadastro: new Date().toISOString(),
-      ativo: req.body.ativo !== undefined ? req.body.ativo : true,
-      destaque: req.body.destaque || false,
-    };
-    
-    dados.empresas = dados.empresas || [];
-    dados.empresas.push(novaEmpresa);
-    
-    dados.meta = {
-      ...dados.meta,
-      total_empresas: dados.empresas.length,
-      ultima_atualizacao: new Date().toISOString(),
-    };
-    
-    await escreverJSON(EMPRESAS_FILE, dados);
-    res.json({ success: true, id: novaEmpresa.id, empresa: novaEmpresa });
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
-  }
-});
+  run();
+}
 
-// Atualizar empresa
-app.put("/api/empresas/:id", async (req, res) => {
-  try {
-    const dados = await lerJSON(EMPRESAS_FILE);
-    const index = dados.empresas.findIndex(e => e.id == req.params.id);
-    
-    if (index >= 0) {
-      dados.empresas[index] = { 
-        ...dados.empresas[index], 
-        ...req.body,
-        data_atualizacao: new Date().toISOString()
-      };
-      
-      dados.meta = {
-        ...dados.meta,
-        ultima_atualizacao: new Date().toISOString(),
-      };
-      
-      await escreverJSON(EMPRESAS_FILE, dados);
-      res.json({ success: true, empresa: dados.empresas[index] });
-    } else {
-      res.status(404).json({ success: false, error: "Empresa não encontrada" });
+// ==========================================
+// INICIALIZAR CATEGORIAS
+// ==========================================
+async function initCategorias() {
+  const empresas = await carregarEmpresas();
+
+  renderCategoriasOptions("catAll");
+
+  const qEl = $("qAll");
+  const cEl = $("catAll");
+
+  const run = () => {
+    const items = filtrar(empresas, qEl?.value, cEl?.value);
+    renderLista("listaAll", items);
+  };
+
+  qEl?.addEventListener("input", run);
+  cEl?.addEventListener("change", run);
+
+  // Atualizar quando houver mudanças
+  window.addEventListener("storage", (e) => {
+    if (e.key === CONFIG.empresasKey) {
+      location.reload();
     }
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
-  }
-});
+  });
 
-// Excluir empresa
-app.delete("/api/empresas/:id", async (req, res) => {
-  try {
-    const dados = await lerJSON(EMPRESAS_FILE);
-    const antes = dados.empresas.length;
-    dados.empresas = dados.empresas.filter(e => e.id != req.params.id);
-    
-    if (dados.empresas.length < antes) {
-      dados.meta = {
-        ...dados.meta,
-        total_empresas: dados.empresas.length,
-        ultima_atualizacao: new Date().toISOString(),
-      };
-      
-      await escreverJSON(EMPRESAS_FILE, dados);
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ success: false, error: "Empresa não encontrada" });
-    }
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
-  }
-});
+  run();
+}
 
 // ==========================================
-// ROTAS DE MENSAGENS
+// TEMA
 // ==========================================
+function initTheme() {
+  const themeToggle = document.getElementById("themeToggle");
+  const themeIcon = document.getElementById("themeIcon");
+  const root = document.documentElement;
 
-app.get("/api/mensagens", async (req, res) => {
-  try {
-    const dados = await lerJSON(MENSAGENS_FILE);
-    res.json({ success: true, mensagens: dados.mensagens || [], meta: dados.meta || {} });
-  } catch (erro) {
-    res.json({ success: true, mensagens: [], meta: {} });
+  if (!themeToggle) return;
+
+  const savedTheme = localStorage.getItem("theme") || "dark";
+  root.setAttribute("data-theme", savedTheme);
+  if (themeIcon) themeIcon.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+
+  themeToggle.addEventListener("click", () => {
+    const current = root.getAttribute("data-theme");
+    const next = current === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+    if (themeIcon) themeIcon.textContent = next === "dark" ? "☀️" : "🌙";
+  });
+}
+
+// ==========================================
+// INICIALIZAÇÃO GERAL
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+
+  const path = window.location.pathname;
+
+  if (path.includes("index") || path === "/" || path.endsWith("/")) {
+    initHome();
+  } else if (path.includes("categorias")) {
+    initCategorias();
   }
+
+  // Atualizar ano no footer
+  const anoEl = document.getElementById("ano");
+  if (anoEl) anoEl.textContent = new Date().getFullYear();
 });
 
-app.post("/api/mensagens", async (req, res) => {
-  try {
-    const dados = await lerJSON(MENSAGENS_FILE);
-    const mensagem = {
-      id: Date.now(),
-      ...req.body,
-      data_envio: new Date().toISOString(),
-      lida: false,
-      respondida: false,
-      ip: req.ip,
-    };
-    
-    dados.mensagens = dados.mensagens || [];
-    dados.mensagens.unshift(mensagem);
-    
-    dados.meta = {
-      ...dados.meta,
-      total_mensagens: dados.mensagens.length,
-      nao_lidas: dados.mensagens.filter(m => !m.lida).length,
-      ultima_atualizacao: new Date().toISOString(),
-    };
-    
-    await escreverJSON(MENSAGENS_FILE, dados);
-    res.json({ success: true, id: mensagem.id });
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
-  }
-});
-
-app.put("/api/mensagens/:id", async (req, res) => {
-  try {
-    const dados = await lerJSON(MENSAGENS_FILE);
-    const index = dados.mensagens.findIndex(m => m.id == req.params.id);
-    
-    if (index >= 0) {
-      dados.mensagens[index] = { ...dados.mensagens[index], ...req.body };
-      await escreverJSON(MENSAGENS_FILE, dados);
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ success: false, error: "Não encontrado" });
-    }
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
-  }
-});
-
-// ==========================================
-// ROTAS DE PAGAMENTOS
-// ==========================================
-
-app.get("/api/pagamentos", async (req, res) => {
-  try {
-    const dados = await lerJSON(PAGAMENTOS_FILE);
-    res.json({ success: true, pagamentos: dados.pagamentos || [] });
-  } catch (erro) {
-    res.json({ success: true, pagamentos: [] });
-  }
-});
-
-app.post("/api/pagamentos", async (req, res) => {
-  try {
-    const dados = await lerJSON(PAGAMENTOS_FILE);
-    const pagamento = {
-      id: Date.now(),
-      ...req.body,
-      data_registro: new Date().toISOString(),
-    };
-    
-    dados.pagamentos = dados.pagamentos || [];
-    dados.pagamentos.push(pagamento);
-    
-    await escreverJSON(PAGAMENTOS_FILE, dados);
-    res.json({ success: true, id: pagamento.id });
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
-  }
-});
-
-// ==========================================
-// ESTATÍSTICAS GERAIS
-// ==========================================
-
-app.get("/api/estatisticas", async (req, res) => {
-  try {
-    const empresasData = await lerJSON(EMPRESAS_FILE);
-    const mensagensData = await lerJSON(MENSAGENS_FILE);
-    const pagamentosData = await lerJSON(PAGAMENTOS_FILE);
-    
-    const empresas = empresasData.empresas || [];
-    const estatisticas = {
-      total_empresas: empresas.length,
-      empresas_ativas: empresas.filter(e => e.ativo !== false).length,
-      empresas_destaque: empresas.filter(e => e.destaque).length,
-      total_mensagens: (mensagensData.mensagens || []).length,
-      mensagens_nao_lidas: (mensagensData.mensagens || []).filter(m => !m.lida).length,
-      categorias: new Set(empresas.map(e => e.categoria)).size,
-      bairros: new Set(empresas.map(e => e.bairro)).size,
-      planos: {
-        basico: empresas.filter(e => e.plano === "basico").length,
-        pro: empresas.filter(e => e.plano === "pro").length,
-        destaque: empresas.filter(e => e.plano === "destaque").length,
-        vip: empresas.filter(e => e.plano === "vip").length,
-      }
-    };
-    
-    res.json({ success: true, estatisticas });
-  } catch (erro) {
-    res.status(500).json({ success: false, error: erro.message });
-  }
-});
-
-// ==========================================
-// INICIAR SERVIDOR
-// ==========================================
-app.listen(PORT, () => {
-  console.log(`
-╔════════════════════════════════════════════╗
-║  🚀 Servidor Guia de Negócios de Chimoio  ║
-╠════════════════════════════════════════════╣
-║  📍 API: http://localhost:${PORT}/api          ║
-║  🌐 Site: http://localhost:${PORT}             ║
-║  💾 Dados: ./data/                         ║
-╚════════════════════════════════════════════╝
-  `);
-});
+// Exportar para uso global
+window.GuiaChimoio = {
+  carregarEmpresas,
+  CONFIG,
+};
